@@ -66,7 +66,7 @@ app.post('/webhook', async (req, res) => {
 
     // Ask Claude for a reply
     const response = await claude.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 1024,
       system: `You are a helpful assistant for a business.
 You handle customer support questions and appointment bookings via WhatsApp.
