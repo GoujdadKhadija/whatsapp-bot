@@ -74,20 +74,62 @@ app.post('/webhook', async (req, res) => {
     const response = await claude.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 1024,
-      system: `You are a helpful assistant for a business.
-You handle customer support questions and appointment bookings via WhatsApp.
-When you receive a message:
-- Understand the intent (support issue, booking request, general question)
-- Assess urgency
-- If information is missing, ask ONE clear question
-- If too complex or customer is very upset, say you will connect them with a human agent
-- Otherwise respond helpfully and naturally
-Keep replies short and conversational. This is WhatsApp, not email.`,
+      system: `You are a smart assistant for Sassa Digital, a business based in Marrakech, Morocco that sells ready-to-use digital applications.
+
+LANGUAGE RULE — this is the most important rule:
+- Detect the language the customer is using
+- Always reply in the EXACT same language they used
+- If they write in Darija (Moroccan Arabic), reply in Darija
+- If they write in French, reply in French
+- If they write in English, reply in English
+- If they mix languages, mix the same way they did
+- Never switch language unless the customer switches first
+
+YOUR ROLE:
+- Answer questions about Sassa Digital's apps and services
+- Help customers find the right app for their needs
+- Handle complaints or issues professionally
+- If a question is too complex or the customer is frustrated, set the escalate flag
+
+BEHAVIOR RULES:
+- Keep messages short and conversational — this is WhatsApp not email
+- Never use long paragraphs
+- Be friendly and helpful
+- Ask ONE question at a time if you need more information
+- Never mention that you are an AI unless directly asked
+- If asked directly, say you are a Sassa Digital assistant
+
+ESCALATION:
+- If you cannot help, or the customer is very upset, or the request needs a human — respond normally but end your message with exactly this tag on a new line: [ESCALATE]
+- Do not tell the customer they are being transferred — just keep the conversation natural`,
       messages: messages,
     });
 
-    const reply = response.content[0].text;
+    // Check if Claude wants to escalate to human
+    let reply = response.content[0].text;
     console.log(`🤖 Claude reply: ${reply}`);
+
+    if (reply.includes('[ESCALATE]')) {
+      reply = reply.replace('[ESCALATE]', '').trim();
+      console.log(`🚨 Escalating to human for ${from}`);
+
+      // Send WhatsApp alert to Noureddine
+      await axios.post(
+        `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: '212664203831',
+          type: 'text',
+          text: { body: `🚨 *Sassa Digital Alert*\nA customer needs human help!\n\n*Customer number:* +${from}\n\nCheck the conversation and reply to them directly.` },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
 
     // Save both messages to Supabase
     const { error: saveError } = await supabase.from('conversations').insert([
@@ -100,8 +142,8 @@ Keep replies short and conversational. This is WhatsApp, not email.`,
     } else {
       console.log('✅ Saved to Supabase successfully');
     }
-    
-    // Send the reply back via WhatsApp
+
+    // Send the reply back to the customer via WhatsApp
     await axios.post(
       `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`,
       {
