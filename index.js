@@ -54,12 +54,18 @@ app.post('/webhook', async (req, res) => {
     console.log(`📩 Message from ${from}: ${text}`);
 
     // Load conversation history from Supabase
-    const { data: history } = await supabase
+    const { data: history, error: fetchError } = await supabase
       .from('conversations')
       .select('role, content')
       .eq('phone_number', from)
       .order('created_at', { ascending: true })
       .limit(20);
+
+    if (fetchError) {
+      console.error('❌ Supabase fetch error:', JSON.stringify(fetchError));
+    } else {
+      console.log('✅ Loaded', history?.length || 0, 'messages from Supabase');
+    }
 
     const messages = history || [];
     messages.push({ role: 'user', content: text });
@@ -84,11 +90,17 @@ Keep replies short and conversational. This is WhatsApp, not email.`,
     console.log(`🤖 Claude reply: ${reply}`);
 
     // Save both messages to Supabase
-    await supabase.from('conversations').insert([
+    const { error: saveError } = await supabase.from('conversations').insert([
       { phone_number: from, role: 'user', content: text },
       { phone_number: from, role: 'assistant', content: reply },
     ]);
 
+    if (saveError) {
+      console.error('❌ Supabase save error:', JSON.stringify(saveError));
+    } else {
+      console.log('✅ Saved to Supabase successfully');
+    }
+    
     // Send the reply back via WhatsApp
     await axios.post(
       `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`,
