@@ -53,6 +53,25 @@ app.post('/webhook', async (req, res) => {
 
     console.log(`📩 Message from ${from}: ${text}`);
 
+    // Check if this is a new customer (no previous messages in Supabase)
+    const { data: existingMessages } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('phone_number', from)
+      .limit(1);
+
+    const isNewCustomer = !existingMessages || existingMessages.length === 0;
+
+    if (isNewCustomer) {
+      console.log(`🆕 New customer detected: ${from}`);
+      // Send to Make.com for Google Sheets logging
+      await axios.post(process.env.MAKE_WEBHOOK_URL, {
+        phone_number: from,
+        date_time: new Date().toISOString(),
+        escalated: 'No'
+      });
+    }
+
     // Load conversation history from Supabase
     const { data: history, error: fetchError } = await supabase
       .from('conversations')
