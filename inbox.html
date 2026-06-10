@@ -621,8 +621,12 @@
   <!-- SETTINGS PANEL -->
   <div id="settingsPanel">
     <div>
-      <h3>WhatsApp API Settings</h3>
-      <p>Required to send manual replies to customers directly from this inbox.</p>
+      <h3>⚙ Settings</h3>
+      <p>One-time setup. These are saved in your browser.</p>
+    </div>
+    <div class="settings-field">
+      <label>SUPABASE ANON KEY</label>
+      <input id="settingsSbKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..." />
     </div>
     <div class="settings-field">
       <label>META ACCESS TOKEN</label>
@@ -633,20 +637,21 @@
       <input id="settingsPhoneId" type="text" placeholder="1092227257315125" />
     </div>
     <button class="save-settings-btn" onclick="saveSettings()">Save Settings</button>
-    <p style="margin-top:8px;" id="settingsSaved" style="display:none;color:var(--green)"></p>
+    <button class="save-settings-btn" style="background:var(--red);margin-top:8px;" onclick="logout()">🚪 Logout</button>
+    <p style="margin-top:8px;" id="settingsSaved"></p>
   </div>
 
   <!-- CREDENTIALS SCREEN -->
   <div id="credsScreen">
     <div class="creds-card">
-      <h2>Connect to Supabase</h2>
-      <p>Enter your Supabase credentials to view all WhatsApp conversations. These are saved in your browser only.</p>
-      <div class="field-label">SUPABASE URL</div>
-      <input id="supabaseUrl" type="text" placeholder="https://ckclcyhhaezkrjmrhplb.supabase.co" />
-      <div class="field-label">ANON PUBLIC KEY</div>
-      <input id="supabaseKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..." />
-      <button onclick="connect()">Open Inbox</button>
-      <div class="error-msg" id="errorMsg"></div>
+      <h2>🔐 Sassa Digital Inbox</h2>
+      <p>Enter your login details to access your WhatsApp conversations.</p>
+      <div class="field-label">USERNAME</div>
+      <input id="loginUser" type="text" placeholder="sassa" autocomplete="username" />
+      <div class="field-label">PASSWORD</div>
+      <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+      <button onclick="connect()">Login</button>
+      <div class="error-msg" id="errorMsg">Wrong username or password.</div>
     </div>
   </div>
 
@@ -713,45 +718,76 @@
   let activePhone = null;
   let pausedNumbers = new Set();
 
-  // ── SETTINGS ──
   function toggleSettings() {
     const p = document.getElementById('settingsPanel');
     p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
   }
 
   function saveSettings() {
+    const sbKey = document.getElementById('settingsSbKey').value.trim();
     META_TOKEN = document.getElementById('settingsToken').value.trim();
     PHONE_NUMBER_ID = document.getElementById('settingsPhoneId').value.trim();
-    localStorage.setItem('meta_token', META_TOKEN);
-    localStorage.setItem('phone_id', PHONE_NUMBER_ID);
+    if (sbKey) { SUPABASE_KEY = sbKey; localStorage.setItem('sb_key', sbKey); }
+    if (META_TOKEN) localStorage.setItem('meta_token', META_TOKEN);
+    if (PHONE_NUMBER_ID) localStorage.setItem('phone_id', PHONE_NUMBER_ID);
     const msg = document.getElementById('settingsSaved');
     msg.textContent = '✅ Settings saved!';
     msg.style.display = 'block';
     msg.style.color = 'var(--green)';
-    setTimeout(() => { msg.style.display = 'none'; toggleSettings(); }, 1500);
+    setTimeout(() => { msg.style.display = 'none'; toggleSettings(); loadCustomers(); }, 1500);
   }
 
   function loadSettings() {
     META_TOKEN = localStorage.getItem('meta_token') || '';
     PHONE_NUMBER_ID = localStorage.getItem('phone_id') || '';
+    SUPABASE_KEY = localStorage.getItem('sb_key') || '';
     if (META_TOKEN) document.getElementById('settingsToken').value = META_TOKEN;
     if (PHONE_NUMBER_ID) document.getElementById('settingsPhoneId').value = PHONE_NUMBER_ID;
+    if (SUPABASE_KEY) document.getElementById('settingsSbKey').value = SUPABASE_KEY;
   }
+
+  function logout() {
+    localStorage.removeItem('logged_in');
+    location.reload();
+  }
+
+  // ── HARDCODED CREDENTIALS (change these to whatever you want) ──
+  const VALID_USERNAME = 'sassa';
+  const VALID_PASSWORD = 'sassa2023';
+
+  // ── HARDCODED SUPABASE (hidden from user) ──
+  SUPABASE_URL = 'https://ckclcyhhaezkrjmrhplb.supabase.co';
 
   // ── CONNECT ──
   async function connect() {
-    SUPABASE_URL = document.getElementById('supabaseUrl').value.trim();
-    SUPABASE_KEY = document.getElementById('supabaseKey').value.trim();
-    if (!SUPABASE_URL || !SUPABASE_KEY) { showError('Please fill in both fields.'); return; }
-    localStorage.setItem('sb_url', SUPABASE_URL);
-    localStorage.setItem('sb_key', SUPABASE_KEY);
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+
+    if (user !== VALID_USERNAME || pass !== VALID_PASSWORD) {
+      showError('Wrong username or password.');
+      return;
+    }
+
+    // Load Supabase key from localStorage (set via Settings)
+    SUPABASE_KEY = localStorage.getItem('sb_key') || '';
+
+    if (!SUPABASE_KEY) {
+      // First time — ask for key via settings
+      document.getElementById('credsScreen').style.display = 'none';
+      document.getElementById('mainLayout').style.display = 'flex';
+      toggleSettings();
+      showSendStatus('⚙ Please add your Supabase key in Settings', 'error');
+      return;
+    }
+
     const ok = await testConnection();
     if (ok) {
+      localStorage.setItem('logged_in', 'true');
       document.getElementById('credsScreen').style.display = 'none';
       document.getElementById('mainLayout').style.display = 'flex';
       await loadCustomers();
     } else {
-      showError('Could not connect. Check your credentials and try again.');
+      showError('Could not connect to database. Check Settings.');
     }
   }
 
@@ -772,13 +808,13 @@
 
   window.onload = () => {
     loadSettings();
-    const url = localStorage.getItem('sb_url');
-    const key = localStorage.getItem('sb_key');
-    if (url && key) {
-      document.getElementById('supabaseUrl').value = url;
-      document.getElementById('supabaseKey').value = key;
-      SUPABASE_URL = url; SUPABASE_KEY = key;
-      connect();
+    SUPABASE_URL = 'https://ckclcyhhaezkrjmrhplb.supabase.co';
+    SUPABASE_KEY = localStorage.getItem('sb_key') || '';
+    const loggedIn = localStorage.getItem('logged_in');
+    if (loggedIn && SUPABASE_KEY) {
+      document.getElementById('credsScreen').style.display = 'none';
+      document.getElementById('mainLayout').style.display = 'flex';
+      loadCustomers();
     }
     const paused = localStorage.getItem('paused_numbers');
     if (paused) pausedNumbers = new Set(JSON.parse(paused));
