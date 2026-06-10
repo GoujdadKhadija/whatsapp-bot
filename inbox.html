@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sassa Digital — Inbox</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3347;
+      --accent: #7c5cfc;
+      --text: #e8eaf0;
+      --muted: #8892a4;
+      --customer: #22263a;
+      --bot: #1a2a3a;
+      --bot-border: #1e4060;
+      --human: #1a2e1a;
+      --human-border: #2a5c2a;
+      --red: #f87171;
+      --green: #4ade80;
+      --orange: #fb923c;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* TOP BAR */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .hdr-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .hdr-btn:hover { background: var(--border); }
+
+    /* CREDENTIALS */
+    #credsScreen {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .creds-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .creds-card h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+    .creds-card p { font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+
+    .field-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+
+    .creds-card input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .creds-card input:focus { border-color: var(--accent); }
+
+    .creds-card button {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .creds-card button:hover { opacity: 0.85; }
+
+    .error-msg { color: var(--red); font-size: 12px; margin-top: 10px; display: none; }
+
+    /* SETTINGS PANEL */
+    #settingsPanel {
+      display: none;
+      position: fixed;
+      top: 56px; right: 0; bottom: 0;
+      width: 340px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      z-index: 100;
+      padding: 24px;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    #settingsPanel h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    #settingsPanel p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    .settings-field label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    .settings-field input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      outline: none;
+    }
+    .settings-field input:focus { border-color: var(--accent); }
+
+    .save-settings-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    /* MAIN LAYOUT */
+    #mainLayout {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+      flex-direction: row;
+    }
+
+    /* SIDEBAR */
+    #sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-header h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+
+    #searchInput {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    #searchInput:focus { border-color: var(--accent); }
+
+    #customerList { flex: 1; overflow-y: auto; padding: 8px; }
+    #customerList::-webkit-scrollbar { width: 4px; }
+    #customerList::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .customer-item {
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.1s;
+      margin-bottom: 2px;
+      border: 1px solid transparent;
+    }
+    .customer-item:hover { background: var(--surface2); }
+    .customer-item.active { background: var(--surface2); border-color: var(--accent); }
+
+    .customer-phone {
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .tag-escalated { background: rgba(248,113,113,0.15); color: var(--red); }
+    .tag-paused { background: rgba(251,146,60,0.15); color: var(--orange); }
+
+    .customer-preview {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .customer-time { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* CHAT AREA */
+    #chatArea {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #emptyState {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      color: var(--muted);
+    }
+
+    .empty-icon { font-size: 40px; opacity: 0.3; }
+    #emptyState p { font-size: 14px; }
+
+    #chatHeader {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: var(--surface);
+      gap: 10px;
+    }
+
+    #chatPhone {
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .chat-actions { display: flex; gap: 8px; align-items: center; }
+
+    #pauseBtn {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    #pauseBtn.paused {
+      background: rgba(251,146,60,0.15);
+      color: var(--orange);
+      border-color: var(--orange);
+    }
+
+    #pauseBtn.active {
+      background: rgba(74,222,128,0.1);
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    #msgCount { font-size: 12px; color: var(--muted); }
+
+    /* PAUSED BANNER */
+    #pausedBanner {
+      display: none;
+      background: rgba(251,146,60,0.1);
+      border-bottom: 1px solid rgba(251,146,60,0.3);
+      padding: 8px 20px;
+      font-size: 12px;
+      color: var(--orange);
+      flex-shrink: 0;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg-wrapper {
+      display: flex;
+      flex-direction: column;
+      max-width: 70%;
+    }
+
+    .msg-wrapper.user { align-self: flex-end; align-items: flex-end; }
+    .msg-wrapper.assistant { align-self: flex-start; align-items: flex-start; }
+    .msg-wrapper.human-reply { align-self: flex-start; align-items: flex-start; }
+
+    .msg-label {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .msg-bubble {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg-wrapper.user .msg-bubble {
+      background: var(--customer);
+      border: 1px solid var(--border);
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-wrapper.assistant .msg-bubble {
+      background: var(--bot);
+      border: 1px solid var(--bot-border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-wrapper.human-reply .msg-bubble {
+      background: var(--human);
+      border: 1px solid var(--human-border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .media-bubble {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 320px;
+    }
+
+    .audio-bubble {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 12px 14px;
+      min-width: 260px;
+    }
+
+    .image-bubble {
+      padding: 6px;
+      background: transparent;
+      border: none;
+    }
+
+    .doc-bubble {
+      max-width: 300px;
+    }
+
+    .media-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .media-caption {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .media-icon { font-size: 22px; }
+
+    .msg-time { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    /* REPLY BOX */
+    #replyBox {
+      display: none;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reply-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    #replyInput {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      line-height: 1.5;
+      transition: border-color 0.15s;
+    }
+    #replyInput:focus { border-color: var(--accent); }
+
+    #sendBtn {
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+      height: 44px;
+    }
+    #sendBtn:hover { opacity: 0.85; }
+    #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #uploadBtn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    #uploadBtn:hover { background: var(--border); color: var(--text); }
+
+    #fileInput { display: none; }
+
+    .file-preview {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .file-preview-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--muted);
+    }
+
+    .file-remove {
+      cursor: pointer;
+      color: var(--red);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .reply-hint {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .send-status {
+      font-size: 12px;
+      display: none;
+      padding: 4px 0;
+    }
+    .send-status.success { color: var(--green); }
+    .send-status.error { color: var(--red); }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      Sassa Digital — Inbox
+    </div>
+    <div class="header-right">
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        Bot online
+      </div>
+      <button class="hdr-btn" onclick="loadCustomers()">↻ Refresh</button>
+      <button class="hdr-btn" onclick="toggleSettings()">⚙ Settings</button>
+    </div>
+  </header>
+
+  <!-- SETTINGS PANEL -->
+  <div id="settingsPanel">
+    <div>
+      <h3>WhatsApp API Settings</h3>
+      <p>Required to send manual replies to customers directly from this inbox.</p>
+    </div>
+    <div class="settings-field">
+      <label>META ACCESS TOKEN</label>
+      <input id="settingsToken" type="password" placeholder="EAAM..." />
+    </div>
+    <div class="settings-field">
+      <label>PHONE NUMBER ID</label>
+      <input id="settingsPhoneId" type="text" placeholder="1092227257315125" />
+    </div>
+    <button class="save-settings-btn" onclick="saveSettings()">Save Settings</button>
+    <p style="margin-top:8px;" id="settingsSaved" style="display:none;color:var(--green)"></p>
+  </div>
+
+  <!-- CREDENTIALS SCREEN -->
+  <div id="credsScreen">
+    <div class="creds-card">
+      <h2>Connect to Supabase</h2>
+      <p>Enter your Supabase credentials to view all WhatsApp conversations. These are saved in your browser only.</p>
+      <div class="field-label">SUPABASE URL</div>
+      <input id="supabaseUrl" type="text" placeholder="https://ckclcyhhaezkrjmrhplb.supabase.co" />
+      <div class="field-label">ANON PUBLIC KEY</div>
+      <input id="supabaseKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..." />
+      <button onclick="connect()">Open Inbox</button>
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div id="mainLayout">
+
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <h3>Conversations</h3>
+        <input id="searchInput" type="text" placeholder="Search by phone number..." oninput="filterCustomers()" />
+      </div>
+      <div id="customerList"></div>
+    </div>
+
+    <div id="chatArea">
+      <div id="emptyState">
+        <div class="empty-icon">💬</div>
+        <p>Select a conversation to view messages</p>
+      </div>
+
+      <div id="chatHeader">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span id="chatPhone"></span>
+          <span id="msgCount"></span>
+        </div>
+        <div class="chat-actions">
+          <button id="pauseBtn" class="active" onclick="togglePause()">🤖 Bot active</button>
+        </div>
+      </div>
+
+      <div id="pausedBanner">
+        ⏸ Bot is paused for this customer — your manual replies won't trigger the AI
+      </div>
+
+      <div id="messages"></div>
+
+      <div id="replyBox">
+        <div id="filePreview" style="display:none" class="file-preview">
+          <span>📎</span>
+          <span class="file-preview-name" id="filePreviewName"></span>
+          <span class="file-remove" onclick="clearFile()">✕</span>
+        </div>
+        <div class="reply-input-row">
+          <button id="uploadBtn" onclick="document.getElementById('fileInput').click()" title="Send image or document">📎</button>
+          <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" onchange="handleFileSelect(event)" />
+          <textarea id="replyInput" placeholder="Type your reply..." rows="1" onkeydown="handleKey(event)"></textarea>
+          <button id="sendBtn" onclick="sendReply()">Send</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="reply-hint">Press Enter to send · Shift+Enter for new line · 📎 to attach file</span>
+          <span class="send-status" id="sendStatus"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  let SUPABASE_URL = '';
+  let SUPABASE_KEY = '';
+  let META_TOKEN = '';
+  let PHONE_NUMBER_ID = '';
+  let allCustomers = [];
+  let activePhone = null;
+  let pausedNumbers = new Set();
+
+  // ── SETTINGS ──
+  function toggleSettings() {
+    const p = document.getElementById('settingsPanel');
+    p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+  }
+
+  function saveSettings() {
+    META_TOKEN = document.getElementById('settingsToken').value.trim();
+    PHONE_NUMBER_ID = document.getElementById('settingsPhoneId').value.trim();
+    localStorage.setItem('meta_token', META_TOKEN);
+    localStorage.setItem('phone_id', PHONE_NUMBER_ID);
+    const msg = document.getElementById('settingsSaved');
+    msg.textContent = '✅ Settings saved!';
+    msg.style.display = 'block';
+    msg.style.color = 'var(--green)';
+    setTimeout(() => { msg.style.display = 'none'; toggleSettings(); }, 1500);
+  }
+
+  function loadSettings() {
+    META_TOKEN = localStorage.getItem('meta_token') || '';
+    PHONE_NUMBER_ID = localStorage.getItem('phone_id') || '';
+    if (META_TOKEN) document.getElementById('settingsToken').value = META_TOKEN;
+    if (PHONE_NUMBER_ID) document.getElementById('settingsPhoneId').value = PHONE_NUMBER_ID;
+  }
+
+  // ── CONNECT ──
+  async function connect() {
+    SUPABASE_URL = document.getElementById('supabaseUrl').value.trim();
+    SUPABASE_KEY = document.getElementById('supabaseKey').value.trim();
+    if (!SUPABASE_URL || !SUPABASE_KEY) { showError('Please fill in both fields.'); return; }
+    localStorage.setItem('sb_url', SUPABASE_URL);
+    localStorage.setItem('sb_key', SUPABASE_KEY);
+    const ok = await testConnection();
+    if (ok) {
+      document.getElementById('credsScreen').style.display = 'none';
+      document.getElementById('mainLayout').style.display = 'flex';
+      await loadCustomers();
+    } else {
+      showError('Could not connect. Check your credentials and try again.');
+    }
+  }
+
+  async function testConnection() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/conversations?limit=1`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+      });
+      return res.ok;
+    } catch { return false; }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  window.onload = () => {
+    loadSettings();
+    const url = localStorage.getItem('sb_url');
+    const key = localStorage.getItem('sb_key');
+    if (url && key) {
+      document.getElementById('supabaseUrl').value = url;
+      document.getElementById('supabaseKey').value = key;
+      SUPABASE_URL = url; SUPABASE_KEY = key;
+      connect();
+    }
+    const paused = localStorage.getItem('paused_numbers');
+    if (paused) pausedNumbers = new Set(JSON.parse(paused));
+  };
+
+  // ── LOAD CUSTOMERS ──
+  async function loadCustomers() {
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/conversations?select=phone_number,role,content,created_at&order=created_at.asc`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const data = await res.json();
+      const map = {};
+      data.forEach(row => {
+        if (!map[row.phone_number]) map[row.phone_number] = [];
+        map[row.phone_number].push(row);
+      });
+      allCustomers = Object.entries(map).map(([phone, msgs]) => ({
+        phone, msgs,
+        lastMsg: msgs[msgs.length - 1],
+        lastTime: msgs[msgs.length - 1].created_at
+      }));
+      allCustomers.sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
+      renderCustomers(allCustomers);
+      if (activePhone) openChat(activePhone);
+    } catch(e) { console.error(e); }
+  }
+
+  function renderCustomers(customers) {
+    const list = document.getElementById('customerList');
+    list.innerHTML = '';
+    if (!customers.length) {
+      list.innerHTML = '<p style="padding:16px;color:var(--muted);font-size:13px;">No conversations yet.</p>';
+      return;
+    }
+    customers.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'customer-item' + (c.phone === activePhone ? ' active' : '');
+      div.onclick = () => openChat(c.phone);
+      const hasEscalation = c.msgs.some(m => m.content?.includes('[ESCALATE]'));
+      const isPaused = pausedNumbers.has(c.phone);
+      const lastContent = c.lastMsg.content || '';
+      const isLastMedia = lastContent.includes('[MEDIA:');
+      const previewText = isLastMedia ? '📎 Media message' : lastContent.replace('[ESCALATE]','').replace('[HUMAN]','').trim().slice(0,50) + '...';
+      div.innerHTML = `
+        <div class="customer-phone">
+          +${c.phone}
+          <span style="display:flex;gap:4px;">
+            ${hasEscalation ? '<span class="tag tag-escalated">🚨 Escalated</span>' : ''}
+            ${isPaused ? '<span class="tag tag-paused">⏸ Paused</span>' : ''}
+          </span>
+        </div>
+        <div class="customer-preview">${previewText}</div>
+        <div class="customer-time">${formatTime(c.lastTime)} · ${c.msgs.length} messages</div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function filterCustomers() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    renderCustomers(allCustomers.filter(c => c.phone.includes(q)));
+  }
+
+  // ── OPEN CHAT ──
+  function openChat(phone) {
+    activePhone = phone;
+    renderCustomers(allCustomers.filter(c => c.phone.includes(document.getElementById('searchInput').value.toLowerCase())));
+    const customer = allCustomers.find(c => c.phone === phone);
+    if (!customer) return;
+
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('chatHeader').style.display = 'flex';
+    document.getElementById('messages').style.display = 'flex';
+    document.getElementById('replyBox').style.display = 'flex';
+
+    document.getElementById('chatPhone').textContent = `+${phone}`;
+    document.getElementById('msgCount').textContent = `${customer.msgs.length} messages`;
+
+    const isPaused = pausedNumbers.has(phone);
+    updatePauseBtn(isPaused);
+
+    const messagesEl = document.getElementById('messages');
+    messagesEl.innerHTML = '';
+    customer.msgs.forEach(msg => {
+      const wrapper = document.createElement('div');
+      const isHuman = msg.role === 'assistant' && msg.content?.startsWith('[HUMAN]');
+      wrapper.className = `msg-wrapper ${isHuman ? 'human-reply' : msg.role}`;
+      const label = msg.role === 'user' ? '👤 Customer' : isHuman ? '👨‍💼 You (manual)' : '🤖 Sassa Bot';
+      const rawContent = msg.content?.replace('[ESCALATE]','').replace('[HUMAN]','').trim();
+      const media = formatMedia(rawContent);
+      const bubbleHtml = media.isMedia
+        ? buildMediaBubble(media)
+        : `<div class="msg-bubble">${rawContent}</div>`;
+      wrapper.innerHTML = `
+        <div class="msg-label">${label}</div>
+        ${bubbleHtml}
+        <div class="msg-time">${formatTime(msg.created_at)}</div>
+      `;
+      messagesEl.appendChild(wrapper);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // ── PAUSE / RESUME BOT ──
+  function togglePause() {
+    if (!activePhone) return;
+    const isPaused = pausedNumbers.has(activePhone);
+    if (isPaused) {
+      pausedNumbers.delete(activePhone);
+    } else {
+      pausedNumbers.add(activePhone);
+    }
+    localStorage.setItem('paused_numbers', JSON.stringify([...pausedNumbers]));
+    updatePauseBtn(!isPaused);
+    renderCustomers(allCustomers.filter(c => c.phone.includes(document.getElementById('searchInput').value.toLowerCase())));
+  }
+
+  function updatePauseBtn(isPaused) {
+    const btn = document.getElementById('pauseBtn');
+    const banner = document.getElementById('pausedBanner');
+    if (isPaused) {
+      btn.textContent = '▶ Resume bot';
+      btn.className = 'paused';
+      banner.style.display = 'flex';
+    } else {
+      btn.textContent = '🤖 Bot active';
+      btn.className = 'active';
+      banner.style.display = 'none';
+    }
+  }
+
+  let selectedFile = null;
+
+  function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    selectedFile = file;
+    document.getElementById('filePreviewName').textContent = file.name;
+    document.getElementById('filePreview').style.display = 'flex';
+    document.getElementById('replyInput').placeholder = 'Add a caption (optional)...';
+  }
+
+  function clearFile() {
+    selectedFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('filePreview').style.display = 'none';
+    document.getElementById('replyInput').placeholder = 'Type your reply...';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); }
+  }
+
+  async function sendReply() {
+    const input = document.getElementById('replyInput');
+    const text = input.value.trim();
+    if (!text && !selectedFile) return;
+    if (!activePhone) return;
+
+    if (!META_TOKEN || !PHONE_NUMBER_ID) {
+      showSendStatus('⚙ Add your Meta token in Settings first', 'error');
+      toggleSettings();
+      return;
+    }
+
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    try {
+      if (selectedFile) {
+        // Send file via backend
+        const BOT_URL = 'https://whatsapp-bot-damp-shape-5114.fly.dev';
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('to', activePhone);
+        if (text) formData.append('caption', text);
+
+        const res = await fetch(`${BOT_URL}/send-media`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to send file');
+        }
+
+        clearFile();
+        input.value = '';
+        showSendStatus('✅ File sent!', 'success');
+
+      } else {
+        // Send text via WhatsApp API directly
+        const res = await fetch(`https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${META_TOKEN}`
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            to: activePhone,
+            type: 'text',
+            text: { body: text }
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error?.message || 'Failed to send');
+        }
+
+        // Save to Supabase
+        await fetch(`${SUPABASE_URL}/rest/v1/conversations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            Prefer: 'return=minimal'
+          },
+          body: JSON.stringify({
+            phone_number: activePhone,
+            role: 'assistant',
+            content: `[HUMAN] ${text}`
+          })
+        });
+
+        input.value = '';
+        showSendStatus('✅ Sent!', 'success');
+      }
+
+      await loadCustomers();
+
+    } catch(e) {
+      showSendStatus(`❌ ${e.message}`, 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Send';
+  }
+
+  function showSendStatus(msg, type) {
+    const el = document.getElementById('sendStatus');
+    el.textContent = msg;
+    el.className = `send-status ${type}`;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3000);
+  }
+
+  const BOT_URL = 'https://whatsapp-bot-damp-shape-5114.fly.dev';
+
+  function formatMedia(content) {
+    const match = content.match(/\[MEDIA:(\w+):([^\]]*)\]/);
+    if (!match) return { isMedia: false };
+    const type = match[1];
+    const mediaId = match[2];
+    const caption = content.replace(/\[MEDIA:\w+:[^\]]*\]/, '').trim();
+    return { isMedia: true, type, mediaId, caption };
+  }
+
+  function buildMediaBubble(media) {
+    const { type, mediaId, caption } = media;
+    const mediaUrl = `${BOT_URL}/media/${mediaId}`;
+
+    if (type === 'audio') {
+      return `
+        <div class="media-bubble audio-bubble">
+          <div class="media-label">🎤 Voice note</div>
+          <audio controls style="width:100%;margin-top:6px;">
+            <source src="${mediaUrl}" type="audio/ogg">
+            <source src="${mediaUrl}" type="audio/mpeg">
+            Your browser does not support audio.
+          </audio>
+          ${caption ? `<div class="media-caption">${caption}</div>` : ''}
+        </div>`;
+    }
+
+    if (type === 'image') {
+      return `
+        <div class="media-bubble image-bubble">
+          <img src="${mediaUrl}" alt="Image" style="max-width:280px;max-height:280px;border-radius:8px;display:block;cursor:pointer;" onclick="window.open('${mediaUrl}','_blank')" />
+          ${caption ? `<div class="media-caption">${caption}</div>` : ''}
+        </div>`;
+    }
+
+    if (type === 'video') {
+      return `
+        <div class="media-bubble">
+          <video controls style="max-width:280px;border-radius:8px;">
+            <source src="${mediaUrl}">
+          </video>
+          ${caption ? `<div class="media-caption">${caption}</div>` : ''}
+        </div>`;
+    }
+
+    if (type === 'document') {
+      const filename = caption || 'Document';
+      return `
+        <div class="media-bubble doc-bubble">
+          <span style="font-size:24px;">📄</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${filename}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Document</div>
+          </div>
+          <a href="${mediaUrl}" download="${filename}" style="color:var(--accent);font-size:12px;text-decoration:none;white-space:nowrap;">⬇ Download</a>
+        </div>`;
+    }
+
+    // Default fallback
+    return `<div class="media-bubble">📎 ${type} — ${caption || ''}</div>`;
+  }
+
+  function formatTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+      return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  }
+</script>
+</body>
+</html>
