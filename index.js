@@ -325,4 +325,41 @@ app.post('/send-media', upload.single('file'), async (req, res) => {
   }
 });
 
+// ✅ Fetch media from Meta and stream it to the inbox
+app.get('/media/:mediaId', async (req, res) => {
+  try {
+    const { mediaId } = req.params;
+
+    // Step 1 — Get the download URL from Meta
+    const urlRes = await axios.get(
+      `https://graph.facebook.com/v18.0/${mediaId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+        },
+      }
+    );
+
+    const downloadUrl = urlRes.data.url;
+    const mimeType = urlRes.data.mime_type || 'audio/ogg';
+
+    // Step 2 — Download the actual file
+    const fileRes = await axios.get(downloadUrl, {
+      responseType: 'arraybuffer',
+      headers: {
+        Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+      },
+    });
+
+    // Step 3 — Send it to the inbox
+    res.set('Content-Type', mimeType);
+    res.set('Access-Control-Allow-Origin', '*');
+    res.send(fileRes.data);
+
+  } catch (err) {
+    console.error('❌ Media fetch error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Could not fetch media' });
+  }
+});
+
 app.listen(3000, '0.0.0.0', () => console.log('🚀 Bot running on port 3000'));
