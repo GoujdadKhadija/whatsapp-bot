@@ -43,10 +43,15 @@ app.post('/webhook', async (req, res) => {
     const value = change?.value;
     const message = value?.messages?.[0];
 
-    
-    // Handle non-text messages (images, audio, video, documents)
+    // Ignore if no message
     if (!message) return res.sendStatus(200);
 
+    // ✅ Define 'from' here so it's available everywhere below
+    const from = message.from;
+
+    console.log(`📩 Message from ${from}: type=${message.type}`);
+
+    // ✅ Handle media messages (audio, image, video, document)
     if (message.type !== 'text') {
       const typeLabels = {
         image: '🖼 an image',
@@ -68,7 +73,7 @@ app.post('/webhook', async (req, res) => {
         content: `[MEDIA:${message.type}:${mediaId}] ${caption}`
       }]);
 
-      // Auto-reply to customer in their language
+      // Auto-reply to customer
       const autoReply = `Je reçois ${label}, mais je peux seulement lire les messages texte pour l'instant. Veuillez écrire votre question et je serai heureux de vous aider! 😊\n\nI received ${label}, but I can only read text messages for now. Please type your question and I'll be happy to help! 😊`;
 
       await axios.post(
@@ -107,10 +112,9 @@ app.post('/webhook', async (req, res) => {
       return res.sendStatus(200);
     }
 
-    const from = message.from;        // customer's phone number
-    const text = message.text.body;   // the message they sent
-
-    console.log(`📩 Message from ${from}: ${text}`);
+    // ✅ From here on — text messages only
+    const text = message.text.body;
+    console.log(`📩 Text from ${from}: ${text}`);
 
     // Check if this is a new customer (no previous messages in Supabase)
     const { data: existingMessages } = await supabase
@@ -123,7 +127,6 @@ app.post('/webhook', async (req, res) => {
 
     if (isNewCustomer) {
       console.log(`🆕 New customer detected: ${from}`);
-      // Send to Make.com for Google Sheets logging
       await axios.post(process.env.MAKE_WEBHOOK_URL, {
         phone_number: from,
         date_time: new Date().toISOString(),
@@ -191,7 +194,6 @@ ESCALATION:
       reply = reply.replace('[ESCALATE]', '').trim();
       console.log(`🚨 Escalating to human for ${from}`);
 
-      // Send WhatsApp alert to Noureddine
       await axios.post(
         `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`,
         {
