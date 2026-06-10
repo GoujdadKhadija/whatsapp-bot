@@ -247,4 +247,82 @@ ESCALATION:
   }
 });
 
+// ✅ Media upload and send endpoint
+const multer = require('multer');
+const FormData = require('form-data');
+const upload = multer({ storage: multer.memoryStorage() });
+
+app.post('/send-media', upload.single('file'), async (req, res) => {
+  try {
+    const { to } = req.body;
+    const file = req.file;
+
+    if (!to || !file) return res.status(400).json({ error: 'Missing to or file' });
+
+    console.log(`📤 Uploading media for ${to}: ${file.originalname} (${file.mimetype})`);
+
+    // Step 1 — Upload file to Meta
+    const form = new FormData();
+    form.append('file', file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
+    form.append('messaging_product', 'whatsapp');
+
+    const uploadRes = await axios.post(
+      `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/media`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+        },
+      }
+    );
+
+    const mediaId = uploadRes.data.id;
+    console.log(`✅ Media uploaded, id=${mediaId}`);
+
+    // Step 2 — Determine media type
+    let mediaType = 'document';
+    if (file.mimetype.startsWith('image/')) mediaType = 'image';
+    else if (file.mimetype.startsWith('video/')) mediaType = 'video';
+    else if (file.mimetype.startsWith('audio/')) mediaType = 'audio';
+
+    // Step 3 — Send to customer
+    await axios.post(
+      `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        to: to,
+        type: mediaType,
+        [mediaType]: {
+          id: mediaId,
+          caption: req.body.caption || '',
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Step 4 — Save to Supabase
+    await supabase.from('conversations').insert([{
+      phone_number: to,
+      role: 'assistant',
+      content: `[HUMAN] [MEDIA:${mediaType}:${mediaId}] ${file.originalname}`
+    }]);
+
+    console.log(`✅ Media sent to ${to}`);
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('❌ Media send error:', err.response?.data || err.message);
+    res.status(500).json({ error: err.response?.data?.error?.message || err.message });
+  }
+});
+
 app.listen(3000, '0.0.0.0', () => console.log('🚀 Bot running on port 3000'));
