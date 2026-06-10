@@ -155,7 +155,7 @@ app.post('/webhook', async (req, res) => {
     const response = await claude.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 1024,
-      system: `You are a smart assistant for Sassa Digital, a business based in Marrakech, Morocco that sells ready-to-use digital applications.
+      system: `You are a smart assistant for Sassa Solutions, a business based in Marrakech, Morocco that sells ready-to-use digital applications.
 
 LANGUAGE RULE — this is the most important rule:
 - Detect the language the customer is using
