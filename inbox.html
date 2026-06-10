@@ -599,6 +599,76 @@
       display: inline-block;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── MOBILE STYLES ── */
+    @media (max-width: 600px) {
+      header { padding: 0 12px; height: 48px; }
+      .logo { font-size: 13px; }
+      .status-badge { display: none; }
+      .hdr-btn { padding: 5px 10px; font-size: 11px; }
+
+      #mainLayout { flex-direction: column; }
+
+      /* On mobile: show list OR chat, not both */
+      #sidebar {
+        width: 100%;
+        height: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      #chatArea {
+        display: none;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: var(--bg);
+        z-index: 200;
+      }
+
+      #chatArea.mobile-open { display: flex; }
+
+      #chatHeader {
+        padding: 10px 12px;
+        padding-top: calc(10px + env(safe-area-inset-top));
+      }
+
+      .back-btn {
+        display: flex !important;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        color: var(--accent);
+        font-size: 14px;
+        cursor: pointer;
+        font-family: inherit;
+        padding: 0;
+        margin-right: 8px;
+        flex-shrink: 0;
+      }
+
+      #chatPhone { font-size: 13px; }
+      #msgCount { display: none; }
+
+      #messages { padding: 12px; gap: 8px; }
+
+      .msg-wrapper { max-width: 85%; }
+      .msg-bubble { font-size: 13px; padding: 8px 12px; }
+
+      #replyBox { padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+      #replyInput { font-size: 14px; }
+
+      #pauseBtn { font-size: 11px; padding: 4px 8px; }
+
+      .customer-item { padding: 14px 12px; }
+
+      #settingsPanel {
+        width: 100%;
+        top: 48px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -673,7 +743,8 @@
       </div>
 
       <div id="chatHeader">
-        <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+          <button class="back-btn" style="display:none" onclick="goBack()">← Back</button>
           <span id="chatPhone"></span>
           <span id="msgCount"></span>
         </div>
@@ -880,6 +951,13 @@
     renderCustomers(allCustomers.filter(c => c.phone.includes(q)));
   }
 
+  const isMobile = () => window.innerWidth <= 600;
+
+  function goBack() {
+    document.getElementById('chatArea').classList.remove('mobile-open');
+    activePhone = null;
+  }
+
   // ── OPEN CHAT ──
   function openChat(phone) {
     activePhone = phone;
@@ -891,6 +969,12 @@
     document.getElementById('chatHeader').style.display = 'flex';
     document.getElementById('messages').style.display = 'flex';
     document.getElementById('replyBox').style.display = 'flex';
+
+    // Show back button and open chat on mobile
+    if (isMobile()) {
+      document.getElementById('chatArea').classList.add('mobile-open');
+      document.querySelector('.back-btn').style.display = 'flex';
+    }
 
     document.getElementById('chatPhone').textContent = `+${phone}`;
     document.getElementById('msgCount').textContent = `${customer.msgs.length} messages`;
