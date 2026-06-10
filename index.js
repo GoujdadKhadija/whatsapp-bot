@@ -43,8 +43,67 @@ app.post('/webhook', async (req, res) => {
     const value = change?.value;
     const message = value?.messages?.[0];
 
-    // Ignore non-text messages (images, audio, etc.) for now
-    if (!message || message.type !== 'text') {
+    
+    // Handle non-text messages (images, audio, video, documents)
+    if (!message) return res.sendStatus(200);
+
+    if (message.type !== 'text') {
+      const typeLabels = {
+        image: '🖼 an image',
+        audio: '🎤 a voice note',
+        video: '🎥 a video',
+        document: '📄 a document',
+        sticker: '😄 a sticker',
+      };
+      const label = typeLabels[message.type] || 'a file';
+      const mediaId = message[message.type]?.id || null;
+      const caption = message[message.type]?.caption || '';
+
+      console.log(`📎 Media message from ${from}: type=${message.type} id=${mediaId}`);
+
+      // Save to Supabase so inbox can show it
+      await supabase.from('conversations').insert([{
+        phone_number: from,
+        role: 'user',
+        content: `[MEDIA:${message.type}:${mediaId}] ${caption}`
+      }]);
+
+      // Auto-reply to customer in their language
+      const autoReply = `Je reçois ${label}, mais je peux seulement lire les messages texte pour l'instant. Veuillez écrire votre question et je serai heureux de vous aider! 😊\n\nI received ${label}, but I can only read text messages for now. Please type your question and I'll be happy to help! 😊`;
+
+      await axios.post(
+        `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: from,
+          type: 'text',
+          text: { body: autoReply },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      // Alert you on WhatsApp
+      await axios.post(
+        `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: '212664203831',
+          type: 'text',
+          text: { body: `📎 *Media received*\nCustomer +${from} sent ${label}.\n\nCheck your inbox to view it.` },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
       return res.sendStatus(200);
     }
 
