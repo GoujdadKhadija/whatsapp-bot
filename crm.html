@@ -4,949 +4,266 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sassa CRM</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0d0f18;
-      --surface: #151822;
-      --surface2: #1e2235;
-      --surface3: #252a3d;
-      --border: #2a3050;
-      --accent: #6c63ff;
-      --accent2: #4ecdc4;
-      --text: #e8eaf6;
-      --muted: #7b82a0;
-      --red: #ff6b6b;
-      --green: #51cf66;
-      --orange: #ff9f43;
-      --yellow: #ffd43b;
-      --sidebar-w: 220px;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
-    }
-
-    /* ── SIDEBAR ── */
-    #sidebar {
-      width: var(--sidebar-w);
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      overflow-y: auto;
-    }
-
-    .brand {
-      padding: 20px 16px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .brand-name {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .brand-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-    }
-
-    .brand-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 2px;
-      margin-left: 16px;
-    }
-
-    .nav-section {
-      padding: 16px 8px 8px;
-    }
-
-    .nav-label {
-      font-size: 10px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 0 8px;
-      margin-bottom: 4px;
-      font-weight: 600;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--muted);
-      transition: all 0.15s;
-      margin-bottom: 2px;
-    }
-
-    .nav-item:hover { background: var(--surface2); color: var(--text); }
-    .nav-item.active { background: var(--accent); color: white; }
-    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
-
-    .nav-badge {
-      margin-left: auto;
-      background: var(--red);
-      color: white;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 10px;
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      padding: 16px;
-      border-top: 1px solid var(--border);
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 12px;
-    }
-
-    .user-avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 13px;
-      flex-shrink: 0;
-    }
-
-    .user-name { font-weight: 500; font-size: 13px; }
-    .user-role { color: var(--muted); font-size: 11px; }
-
-    .logout-btn {
-      margin-top: 10px;
-      width: 100%;
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 6px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s;
-    }
-    .logout-btn:hover { border-color: var(--red); color: var(--red); }
-
-    /* ── MAIN CONTENT ── */
-    #main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* TOP BAR */
-    #topbar {
-      height: 52px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 12px;
-      flex-shrink: 0;
-    }
-
-    #pageTitle {
-      font-size: 15px;
-      font-weight: 600;
-      flex: 1;
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .status-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .status-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-    .topbar-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s;
-    }
-    .topbar-btn:hover { background: var(--border); }
-
-    /* ── PAGES ── */
-    .page { display: none; flex: 1; overflow: hidden; flex-direction: column; }
-    .page.active { display: flex; }
-
-    .page-content { flex: 1; overflow-y: auto; padding: 20px; }
-    .page-content::-webkit-scrollbar { width: 4px; }
-    .page-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    /* ── LOGIN ── */
-    #loginScreen {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 24px;
-    }
-
-    .login-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .login-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
-
-    .form-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
-
-    .form-input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 11px 14px;
-      color: var(--text);
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-      margin-bottom: 14px;
-      transition: border-color 0.15s;
-    }
-    .form-input:focus { border-color: var(--accent); }
-
-    .login-btn {
-      width: 100%;
-      background: var(--accent);
-      border: none;
-      border-radius: 10px;
-      padding: 13px;
-      color: white;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.15s;
-      margin-top: 4px;
-    }
-    .login-btn:hover { opacity: 0.85; }
-
-    .login-error { color: var(--red); font-size: 12px; margin-top: 10px; display: none; }
-
-    /* ── SETTINGS MODAL ── */
-    #settingsModal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 500;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .modal-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      width: 100%;
-      max-width: 480px;
-    }
-
-    .modal-title {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .settings-save-btn {
-      background: var(--accent);
-      border: none;
-      border-radius: 8px;
-      padding: 10px 20px;
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      margin-top: 16px;
-      width: 100%;
-    }
-
-    /* ── DASHBOARD ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 10px;
-      font-weight: 500;
-    }
-
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .stat-sub { font-size: 11px; color: var(--muted); }
-
-    .stat-icon {
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
-
-    .charts-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-    }
-
-    .chart-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .recent-list { display: flex; flex-direction: column; gap: 10px; }
-
-    .recent-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px;
-      background: var(--surface2);
-      border-radius: 10px;
-      font-size: 13px;
-    }
-
-    .recent-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
-    .recent-info { flex: 1; min-width: 0; }
-    .recent-phone { font-weight: 500; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
-    .recent-msg { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .recent-time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
-
-    /* ── INBOX ── */
-    #inboxLayout {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    #contactList {
-      width: 300px;
-      flex-shrink: 0;
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .contact-list-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .filter-tabs {
-      display: flex;
-      gap: 4px;
-    }
-
-    .filter-tab {
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      cursor: pointer;
-      color: var(--muted);
-      background: none;
-      border: none;
-      font-family: inherit;
-      transition: all 0.15s;
-    }
-    .filter-tab.active { background: var(--accent); color: white; }
-    .filter-tab:hover:not(.active) { background: var(--surface2); color: var(--text); }
-
-    .search-input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 7px 12px;
-      color: var(--text);
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-    }
-    .search-input:focus { border-color: var(--accent); }
-
-    #contactItems { flex: 1; overflow-y: auto; }
-    #contactItems::-webkit-scrollbar { width: 3px; }
-    #contactItems::-webkit-scrollbar-thumb { background: var(--border); }
-
-    .contact-item {
-      padding: 12px 16px;
-      cursor: pointer;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.1s;
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-    }
-    .contact-item:hover { background: var(--surface2); }
-    .contact-item.active { background: var(--surface3); border-left: 3px solid var(--accent); }
-
-    .contact-avatar {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 15px;
-      flex-shrink: 0;
-    }
-
-    .contact-body { flex: 1; min-width: 0; }
-
-    .contact-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 3px;
-    }
-
-    .contact-name { font-size: 13px; font-weight: 500; }
-    .contact-time { font-size: 10px; color: var(--muted); }
-    .contact-preview { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .contact-tags { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
-
-    .tag {
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .tag-new { background: rgba(108,99,255,0.2); color: var(--accent); }
-    .tag-open { background: rgba(78,205,196,0.2); color: var(--accent2); }
-    .tag-closed { background: rgba(123,130,160,0.2); color: var(--muted); }
-    .tag-escalated { background: rgba(255,107,107,0.2); color: var(--red); }
-    .tag-paused { background: rgba(255,159,67,0.2); color: var(--orange); }
-
-    /* ── CHAT PANEL ── */
-    #chatPanel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    #chatPanelHeader {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-shrink: 0;
-      background: var(--surface);
-    }
-
-    .chat-header-info { flex: 1; }
-    .chat-header-name { font-size: 14px; font-weight: 600; }
-    .chat-header-sub { font-size: 11px; color: var(--muted); }
-
-    .chat-header-actions { display: flex; gap: 8px; }
-
-    .action-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .action-btn:hover { background: var(--border); }
-    .action-btn.danger { border-color: var(--red); color: var(--red); }
-    .action-btn.danger:hover { background: rgba(255,107,107,0.1); }
-    .action-btn.success { border-color: var(--green); color: var(--green); }
-
-    #chatMessages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    #chatMessages::-webkit-scrollbar { width: 4px; }
-    #chatMessages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    .msg-wrap { display: flex; flex-direction: column; max-width: 65%; }
-    .msg-wrap.user { align-self: flex-end; align-items: flex-end; }
-    .msg-wrap.assistant { align-self: flex-start; align-items: flex-start; }
-    .msg-wrap.human-reply { align-self: flex-start; align-items: flex-start; }
-
-    .msg-sender { font-size: 10px; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 500; }
-
-    .msg-bubble {
-      padding: 9px 13px;
-      border-radius: 12px;
-      font-size: 13px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .msg-wrap.user .msg-bubble { background: var(--surface2); border: 1px solid var(--border); border-bottom-right-radius: 4px; }
-    .msg-wrap.assistant .msg-bubble { background: #1a2a3a; border: 1px solid #1e4060; border-bottom-left-radius: 4px; }
-    .msg-wrap.human-reply .msg-bubble { background: #1a2e1a; border: 1px solid #2a5c2a; border-bottom-left-radius: 4px; }
-
-    .msg-time { font-size: 10px; color: var(--muted); margin-top: 3px; }
-
-    /* REPLY BOX */
-    #replyArea {
-      border-top: 1px solid var(--border);
-      padding: 12px 16px;
-      background: var(--surface);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .paused-banner {
-      background: rgba(255,159,67,0.1);
-      border: 1px solid rgba(255,159,67,0.3);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 12px;
-      color: var(--orange);
-      display: none;
-    }
-
-    .reply-row { display: flex; gap: 8px; align-items: flex-end; }
-
-    .reply-textarea {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 9px 13px;
-      color: var(--text);
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      resize: none;
-      min-height: 40px;
-      max-height: 100px;
-      line-height: 1.5;
-    }
-    .reply-textarea:focus { border-color: var(--accent); }
-
-    .send-btn {
-      background: var(--accent);
-      border: none;
-      border-radius: 10px;
-      padding: 9px 16px;
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      height: 40px;
-      transition: opacity 0.15s;
-    }
-    .send-btn:hover { opacity: 0.85; }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .attach-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 9px 12px;
-      color: var(--muted);
-      font-size: 16px;
-      cursor: pointer;
-      height: 40px;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-    }
-    .attach-btn:hover { color: var(--text); background: var(--border); }
-
-    .reply-hints { display: flex; justify-content: space-between; align-items: center; }
-    .reply-hint-text { font-size: 11px; color: var(--muted); }
-    .send-status { font-size: 12px; display: none; }
-    .send-status.ok { color: var(--green); }
-    .send-status.err { color: var(--red); }
-
-    /* ── CUSTOMER INFO PANEL ── */
-    #infoPanel {
-      width: 260px;
-      flex-shrink: 0;
-      border-left: 1px solid var(--border);
-      overflow-y: auto;
-      background: var(--surface);
-    }
-    #infoPanel::-webkit-scrollbar { width: 3px; }
-    #infoPanel::-webkit-scrollbar-thumb { background: var(--border); }
-
-    .info-section {
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .info-section-title {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 12px;
-    }
-
-    .info-key { color: var(--muted); }
-    .info-val { font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-
-    .info-input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 10px;
-      color: var(--text);
-      font-size: 12px;
-      font-family: inherit;
-      outline: none;
-      margin-bottom: 8px;
-    }
-    .info-input:focus { border-color: var(--accent); }
-
-    .info-select {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 10px;
-      color: var(--text);
-      font-size: 12px;
-      font-family: inherit;
-      outline: none;
-      margin-bottom: 8px;
-      cursor: pointer;
-    }
-
-    .info-save-btn {
-      width: 100%;
-      background: var(--accent);
-      border: none;
-      border-radius: 6px;
-      padding: 7px;
-      color: white;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.15s;
-    }
-    .info-save-btn:hover { opacity: 0.85; }
-
-    .notes-textarea {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 10px;
-      color: var(--text);
-      font-size: 12px;
-      font-family: inherit;
-      outline: none;
-      resize: none;
-      min-height: 80px;
-      line-height: 1.5;
-      margin-bottom: 8px;
-    }
-    .notes-textarea:focus { border-color: var(--accent); }
-
-    .label-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-
-    .label-chip {
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.15s;
-    }
-    .label-chip.selected { border-color: currentColor; }
-
-    /* ── CONTACTS PAGE ── */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-
-    .page-header h2 { font-size: 18px; font-weight: 700; }
-
-    .contacts-table {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-    }
-
-    .table-header {
-      display: grid;
-      grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-    }
-
-    .table-row {
-      display: grid;
-      grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-      align-items: center;
-      transition: background 0.1s;
-      cursor: pointer;
-    }
-    .table-row:hover { background: var(--surface2); }
-    .table-row:last-child { border-bottom: none; }
-
-    .table-phone { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-
-    /* ── BROADCAST ── */
-    .broadcast-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-      max-width: 600px;
-    }
-
-    .broadcast-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-    .broadcast-card p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-
-    .broadcast-textarea {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: var(--text);
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-      resize: none;
-      min-height: 120px;
-      line-height: 1.6;
-      margin-bottom: 16px;
-    }
-    .broadcast-textarea:focus { border-color: var(--accent); }
-
-    .broadcast-btn {
-      background: var(--accent);
-      border: none;
-      border-radius: 10px;
-      padding: 12px 24px;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.15s;
-    }
-    .broadcast-btn:hover { opacity: 0.85; }
-    .broadcast-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .broadcast-info {
-      background: var(--surface2);
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d0f18;--surface:#151822;--surface2:#1e2235;--surface3:#252a3d;
+      --border:#2a3050;--accent:#6c63ff;--accent2:#4ecdc4;--text:#e8eaf6;
+      --muted:#7b82a0;--red:#ff6b6b;--green:#51cf66;--orange:#ff9f43;
+      --sidebar-w:230px;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden}
+
+    /* SIDEBAR */
+    #sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+    .brand{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+    .brand-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700}
+    .brand-dot{width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white}
+    .brand-sub{font-size:11px;color:var(--muted);margin-top:2px;margin-left:38px}
+    .search-wrap{padding:10px 12px;border-bottom:1px solid var(--border)}
+    .sidebar-search{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none}
+    .sidebar-search:focus{border-color:var(--accent)}
+    .nav-section{padding:12px 8px 4px}
+    .nav-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin-bottom:4px;font-weight:600}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;margin-bottom:2px;user-select:none}
+    .nav-item:hover{background:var(--surface2);color:var(--text)}
+    .nav-item.active{background:var(--accent);color:white}
+    .nav-icon{font-size:15px;width:20px;text-align:center}
+    .nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
+    .sidebar-footer{margin-top:auto;padding:14px;border-top:1px solid var(--border)}
+    .user-row{display:flex;align-items:center;gap:10px}
+    .user-av{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+    .user-name{font-weight:500;font-size:13px}
+    .user-role{color:var(--muted);font-size:11px}
+    .logout-btn{margin-top:8px;width:100%;background:none;border:1px solid var(--border);color:var(--muted);padding:6px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+    .logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+    /* MAIN */
+    #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    #topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+    #pageTitle{font-size:15px;font-weight:600;flex:1}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .status-pill{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted)}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .topbar-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s}
+    .topbar-btn:hover{background:var(--border)}
+    .time-filter{display:flex;gap:4px}
+    .time-btn{padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;color:var(--muted);background:none;border:1px solid transparent;font-family:inherit;transition:all .15s}
+    .time-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+
+    /* PAGES */
+    .page{display:none;flex:1;overflow:hidden;flex-direction:column}
+    .page.active{display:flex}
+    .page-content{flex:1;overflow-y:auto;padding:20px}
+    .page-content::-webkit-scrollbar{width:4px}
+    .page-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+    /* LOGIN */
+    #loginScreen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px}
+    .login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:400px}
+    .login-logo{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;margin-bottom:6px}
+    .login-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+    .form-label{font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500}
+    .form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:14px;transition:border-color .15s}
+    .form-input:focus{border-color:var(--accent)}
+    .login-btn{width:100%;background:var(--accent);border:none;border-radius:10px;padding:13px;color:white;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+    .login-btn:hover{opacity:.85}
+    .login-error{color:var(--red);font-size:12px;margin-top:10px;display:none}
+
+    /* MODAL */
+    #settingsModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;padding:24px}
+    .modal-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:480px}
+    .modal-title{font-size:16px;font-weight:600;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+    .modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+    .settings-save{background:var(--accent);border:none;border-radius:8px;padding:10px 20px;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:16px;width:100%}
+
+    /* DASHBOARD */
+    .dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+    .dash-welcome{font-size:20px;font-weight:700}
+    .dash-sub{font-size:13px;color:var(--muted);margin-top:2px}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent-color,var(--accent))}
+    .stat-icon{font-size:22px;margin-bottom:8px}
+    .stat-label{font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+    .stat-value{font-size:26px;font-weight:700;margin-bottom:2px}
+    .stat-sub{font-size:11px;color:var(--muted)}
+    .charts-row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px}
+    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+    .chart-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+    .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .recent-item{display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--surface2);border-radius:10px;cursor:pointer;transition:background .1s;margin-bottom:6px}
+    .recent-item:hover{background:var(--surface3)}
+    .recent-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+    .recent-info{flex:1;min-width:0}
+    .recent-name{font-size:12px;font-weight:500}
+    .recent-msg{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .recent-time{font-size:10px;color:var(--muted);flex-shrink:0}
+    .qs-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--surface2);border-radius:8px;font-size:12px;margin-bottom:6px}
+    .qs-key{color:var(--muted)}
+    .qs-val{font-weight:600}
+
+    /* INBOX */
+    #inboxLayout{display:flex;flex:1;overflow:hidden}
+    #contactList{width:290px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .cl-header{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+    .filter-tabs{display:flex;gap:4px;flex-wrap:wrap}
+    .filter-tab{padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;color:var(--muted);background:none;border:none;font-family:inherit;transition:all .15s}
+    .filter-tab.active{background:var(--accent);color:white}
+    .filter-tab:hover:not(.active){background:var(--surface2);color:var(--text)}
+    .cl-search{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none}
+    .cl-search:focus{border-color:var(--accent)}
+    #contactItems{flex:1;overflow-y:auto}
+    #contactItems::-webkit-scrollbar{width:3px}
+    #contactItems::-webkit-scrollbar-thumb{background:var(--border)}
+    .contact-item{padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;display:flex;gap:10px;align-items:flex-start}
+    .contact-item:hover{background:var(--surface2)}
+    .contact-item.active{background:var(--surface3);border-left:3px solid var(--accent)}
+    .c-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+    .c-body{flex:1;min-width:0}
+    .c-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+    .c-name{font-size:13px;font-weight:500}
+    .c-time{font-size:10px;color:var(--muted)}
+    .c-preview{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .c-tags{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+    .tag{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+    .tag-new{background:rgba(108,99,255,.2);color:var(--accent)}
+    .tag-open{background:rgba(78,205,196,.2);color:var(--accent2)}
+    .tag-closed{background:rgba(123,130,160,.2);color:var(--muted)}
+    .tag-escalated{background:rgba(255,107,107,.2);color:var(--red)}
+    .tag-paused{background:rgba(255,159,67,.2);color:var(--orange)}
+
+    /* CHAT */
+    #chatPanel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    #chatHeader{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--surface);display:none}
+    .ch-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+    .ch-info{flex:1}
+    .ch-name{font-size:14px;font-weight:600}
+    .ch-sub{font-size:11px;color:var(--muted)}
+    .ch-actions{display:flex;gap:6px}
+    .action-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 11px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+    .action-btn:hover{background:var(--border)}
+    .action-btn.on{border-color:var(--green);color:var(--green)}
+    .action-btn.off{border-color:var(--orange);color:var(--orange)}
+    .paused-banner{background:rgba(255,159,67,.1);border-bottom:1px solid rgba(255,159,67,.3);padding:6px 14px;font-size:12px;color:var(--orange);display:none;flex-shrink:0}
+    #chatMessages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:9px;display:none}
+    #chatMessages::-webkit-scrollbar{width:4px}
+    #chatMessages::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+    .msg-wrap{display:flex;flex-direction:column;max-width:65%}
+    .msg-wrap.user{align-self:flex-end;align-items:flex-end}
+    .msg-wrap.assistant,.msg-wrap.human-reply{align-self:flex-start;align-items:flex-start}
+    .msg-sender{font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+    .msg-bubble{padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+    .msg-wrap.user .msg-bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-right-radius:4px}
+    .msg-wrap.assistant .msg-bubble{background:#1a2a3a;border:1px solid #1e4060;border-bottom-left-radius:4px}
+    .msg-wrap.human-reply .msg-bubble{background:#1a2e1a;border:1px solid #2a5c2a;border-bottom-left-radius:4px}
+    .msg-time{font-size:10px;color:var(--muted);margin-top:3px}
+    #replyArea{border-top:1px solid var(--border);padding:11px 14px;background:var(--surface);display:none;flex-direction:column;gap:7px}
+    .reply-row{display:flex;gap:7px;align-items:flex-end}
+    .reply-ta{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;resize:none;min-height:38px;max-height:100px;line-height:1.5}
+    .reply-ta:focus{border-color:var(--accent)}
+    .send-btn{background:var(--accent);border:none;border-radius:10px;padding:8px 16px;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;height:38px;transition:opacity .15s}
+    .send-btn:hover{opacity:.85}
+    .send-btn:disabled{opacity:.4;cursor:not-allowed}
+    .attach-btn{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;color:var(--muted);font-size:15px;cursor:pointer;height:38px;display:flex;align-items:center;transition:all .15s}
+    .attach-btn:hover{color:var(--text);background:var(--border)}
+    .reply-hints{display:flex;justify-content:space-between;align-items:center}
+    .hint-text{font-size:11px;color:var(--muted)}
+    .send-status{font-size:12px;display:none}
+    .send-status.ok{color:var(--green)}
+    .send-status.err{color:var(--red)}
+
+    /* QUICK REPLIES */
+    .qr-bar{display:flex;gap:6px;flex-wrap:wrap;padding:6px 14px;border-top:1px solid var(--border);background:var(--surface);display:none}
+    .qr-chip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap}
+    .qr-chip:hover{background:var(--accent);color:white;border-color:var(--accent)}
+
+    /* INFO PANEL */
+    #infoPanel{width:250px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--surface)}
+    #infoPanel::-webkit-scrollbar{width:3px}
+    #infoPanel::-webkit-scrollbar-thumb{background:var(--border)}
+    .info-sec{padding:14px;border-bottom:1px solid var(--border)}
+    .info-sec-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:10px}
+    .info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px}
+    .info-key{color:var(--muted)}
+    .info-val{font-weight:500;font-family:'JetBrains Mono',monospace;font-size:11px}
+    .info-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;font-family:inherit;outline:none;margin-bottom:7px}
+    .info-input:focus{border-color:var(--accent)}
+    .info-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;font-family:inherit;outline:none;margin-bottom:7px;cursor:pointer}
+    .info-btn{width:100%;background:var(--accent);border:none;border-radius:6px;padding:7px;color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+    .info-btn:hover{opacity:.85}
+    .label-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+    .label-chip{padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s}
+    .label-chip.selected{border-color:currentColor}
+    .notes-ta{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;font-family:inherit;outline:none;resize:none;min-height:70px;line-height:1.5;margin-bottom:7px}
+    .notes-ta:focus{border-color:var(--accent)}
+
+    /* CONTACTS */
+    .page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .page-hdr h2{font-size:18px;font-weight:700}
+    .contacts-table{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .table-hdr{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;padding:11px 14px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+    .table-row{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;padding:11px 14px;border-bottom:1px solid var(--border);font-size:12px;align-items:center;transition:background .1s;cursor:pointer}
+    .table-row:hover{background:var(--surface2)}
+    .table-row:last-child{border-bottom:none}
+    .table-phone{font-family:'JetBrains Mono',monospace;font-size:11px}
+    .table-actions{display:flex;gap:14px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+    .table-search{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;width:260px}
+    .table-search:focus{border-color:var(--accent)}
+
+    /* BROADCAST */
+    .broadcast-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .bc-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
+    .bc-card h3{font-size:15px;font-weight:600;margin-bottom:6px}
+    .bc-card p{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+    .bc-ta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-size:13px;font-family:inherit;outline:none;resize:none;min-height:110px;line-height:1.6;margin-bottom:14px}
+    .bc-ta:focus{border-color:var(--accent)}
+    .bc-btn{background:var(--accent);border:none;border-radius:10px;padding:11px 20px;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+    .bc-btn:hover{opacity:.85}
+    .bc-btn:disabled{opacity:.4;cursor:not-allowed}
+    .bc-info{background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+    .campaign-item{background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:8px}
+    .campaign-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+    .campaign-name{font-size:13px;font-weight:500}
+    .campaign-date{font-size:11px;color:var(--muted)}
+    .campaign-msg{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+    .campaign-stats{display:flex;gap:12px;font-size:11px}
+    .cs-sent{color:var(--green)}
+    .cs-failed{color:var(--red)}
+
+    /* QUICK REPLIES PAGE */
+    .qr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+    .qr-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative}
+    .qr-title{font-size:13px;font-weight:600;margin-bottom:6px}
+    .qr-body{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+    .qr-actions{display:flex;gap:8px}
+    .qr-use-btn{background:var(--accent);border:none;border-radius:6px;padding:5px 12px;color:white;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+    .qr-del-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+    .qr-del-btn:hover{border-color:var(--red);color:var(--red)}
+    .add-qr-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;max-width:500px}
+    .add-qr-form h3{font-size:14px;font-weight:600;margin-bottom:14px}
+
+    /* PHONEBOOK */
+    .pb-actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+
+    /* EMPTY */
+    .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);padding:50px 20px;text-align:center}
+    .empty-icon{font-size:36px;opacity:.3}
+    .empty-text{font-size:13px}
 
     /* SPINNER */
-    .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: inline-block;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* EMPTY STATE */
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      color: var(--muted);
-      padding: 60px 20px;
-      text-align: center;
-    }
-    .empty-icon { font-size: 40px; opacity: 0.3; }
-    .empty-text { font-size: 14px; }
-
-    /* MOBILE */
-    @media (max-width: 768px) {
-      #sidebar { display: none; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .charts-row { grid-template-columns: 1fr; }
-      #infoPanel { display: none; }
-      #contactList { width: 100%; }
-      #chatPanel { display: none; }
-      #chatPanel.mobile-open { display: flex; position: fixed; inset: 0; z-index: 100; background: var(--bg); }
+    @media(max-width:900px){
+      #sidebar{display:none}
+      .stats-grid{grid-template-columns:repeat(2,1fr)}
+      .charts-row,.bottom-row{grid-template-columns:1fr}
+      #infoPanel{display:none}
+      .broadcast-grid{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -956,15 +273,15 @@
 <div id="loginScreen">
   <div class="login-card">
     <div class="login-logo">
-      <span style="background:var(--accent);padding:6px 10px;border-radius:8px;">SS</span>
+      <div style="background:var(--accent);padding:8px 12px;border-radius:10px;font-size:14px;font-weight:800;color:white">SS</div>
       Sassa CRM
     </div>
     <div class="login-sub">Sign in to manage your WhatsApp conversations</div>
     <div class="form-label">USERNAME</div>
-    <input class="form-input" id="loginUser" type="text" placeholder="sassa" autocomplete="username" />
+    <input class="form-input" id="loginUser" type="text" placeholder="sassa" autocomplete="username"/>
     <div class="form-label">PASSWORD</div>
-    <input class="form-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
-    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <input class="form-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
     <div class="login-error" id="loginError">Wrong username or password.</div>
   </div>
 </div>
@@ -972,44 +289,43 @@
 <!-- SETTINGS MODAL -->
 <div id="settingsModal">
   <div class="modal-card">
-    <div class="modal-title">
-      ⚙ Settings
-      <button class="modal-close" onclick="closeSettings()">✕</button>
-    </div>
+    <div class="modal-title">⚙ Settings <button class="modal-close" onclick="closeSettings()">✕</button></div>
     <div class="form-label">SUPABASE ANON KEY</div>
-    <input class="form-input" id="setSbKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..." />
+    <input class="form-input" id="setSbKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIs..."/>
     <div class="form-label">META ACCESS TOKEN</div>
-    <input class="form-input" id="setMetaToken" type="password" placeholder="EAAM..." />
+    <input class="form-input" id="setMetaToken" type="password" placeholder="EAAM..."/>
     <div class="form-label">PHONE NUMBER ID</div>
-    <input class="form-input" id="setPhoneId" type="text" placeholder="1092227257315125" />
-    <button class="settings-save-btn" onclick="saveSettings()">Save Settings</button>
+    <input class="form-input" id="setPhoneId" type="text" placeholder="1092227257315125"/>
+    <button class="settings-save" onclick="saveSettings()">💾 Save Settings</button>
   </div>
 </div>
 
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div class="brand">
-    <div class="brand-name"><div class="brand-dot"></div>Sassa CRM</div>
+    <div class="brand-logo"><div class="brand-dot">SS</div>Sassa CRM</div>
     <div class="brand-sub">Sassa Solutions</div>
+  </div>
+  <div class="search-wrap">
+    <input class="sidebar-search" placeholder="🔍 Search conversations..." oninput="globalSearch(this.value)"/>
   </div>
   <div class="nav-section">
     <div class="nav-label">Main</div>
-    <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">🏠</span> Dashboard</div>
-    <div class="nav-item" onclick="showPage('inbox')" id="navInbox"><span class="icon">💬</span> Inbox <span class="nav-badge" id="unreadBadge" style="display:none">0</span></div>
-    <div class="nav-item" onclick="showPage('contacts')"><span class="icon">👥</span> Contacts</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">🏠</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('inbox',this)"><span class="nav-icon">💬</span> Inbox <span class="nav-badge" id="newBadge" style="display:none">0</span></div>
+    <div class="nav-item" onclick="showPage('contacts',this)"><span class="nav-icon">👥</span> Contacts</div>
+    <div class="nav-item" onclick="showPage('phonebook',this)"><span class="nav-icon">📒</span> Phonebook</div>
   </div>
   <div class="nav-section">
     <div class="nav-label">Tools</div>
-    <div class="nav-item" onclick="showPage('broadcast')"><span class="icon">📢</span> Broadcast</div>
-    <div class="nav-item" onclick="openSettings()"><span class="icon">⚙</span> Settings</div>
+    <div class="nav-item" onclick="showPage('broadcast',this)"><span class="nav-icon">📢</span> Broadcast</div>
+    <div class="nav-item" onclick="showPage('quickreplies',this)"><span class="nav-icon">⚡</span> Quick Replies</div>
+    <div class="nav-item" onclick="openSettings()"><span class="nav-icon">⚙</span> Settings</div>
   </div>
   <div class="sidebar-footer">
-    <div class="user-info">
-      <div class="user-avatar">S</div>
-      <div>
-        <div class="user-name">Noureddine</div>
-        <div class="user-role">Admin</div>
-      </div>
+    <div class="user-row">
+      <div class="user-av">N</div>
+      <div><div class="user-name">Noureddine</div><div class="user-role">Admin · Sassa Solutions</div></div>
     </div>
     <button class="logout-btn" onclick="logout()">🚪 Logout</button>
   </div>
@@ -1020,758 +336,831 @@
   <div id="topbar">
     <div id="pageTitle">Dashboard</div>
     <div class="topbar-right">
-      <div class="status-pill"><div class="status-dot"></div> Bot online</div>
-      <button class="topbar-btn" onclick="refreshAll()">↻ Refresh</button>
+      <div class="time-filter" id="timeFilter" style="display:none">
+        <button class="time-btn active" onclick="setTimeFilter(7,this)">7 Days</button>
+        <button class="time-btn" onclick="setTimeFilter(30,this)">30 Days</button>
+        <button class="time-btn" onclick="setTimeFilter(90,this)">All Time</button>
+      </div>
+      <div class="status-pill"><div class="status-dot"></div>Bot online</div>
+      <button class="topbar-btn" onclick="loadAll()">↻ Refresh</button>
     </div>
   </div>
 
-  <!-- DASHBOARD PAGE -->
+  <!-- DASHBOARD -->
   <div class="page active" id="page-dashboard">
     <div class="page-content">
+      <div class="dash-header">
+        <div>
+          <div class="dash-welcome" id="welcomeMsg">Welcome back, Noureddine 👋</div>
+          <div class="dash-sub" id="dashDate"></div>
+        </div>
+      </div>
       <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" style="--accent-color:#6c63ff">
           <div class="stat-icon">👥</div>
           <div class="stat-label">Total Customers</div>
-          <div class="stat-value" id="statCustomers">—</div>
-          <div class="stat-sub">Unique phone numbers</div>
+          <div class="stat-value" id="s1">—</div>
+          <div class="stat-sub">Unique contacts</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="--accent-color:#4ecdc4">
           <div class="stat-icon">💬</div>
           <div class="stat-label">Total Messages</div>
-          <div class="stat-value" id="statMessages">—</div>
-          <div class="stat-sub">All time</div>
+          <div class="stat-value" id="s2">—</div>
+          <div class="stat-sub">All conversations</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="--accent-color:#51cf66">
           <div class="stat-icon">📅</div>
           <div class="stat-label">Messages Today</div>
-          <div class="stat-value" id="statToday">—</div>
+          <div class="stat-value" id="s3">—</div>
           <div class="stat-sub">Last 24 hours</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="--accent-color:#ff6b6b">
           <div class="stat-icon">🚨</div>
           <div class="stat-label">Escalations</div>
-          <div class="stat-value" id="statEscalations">—</div>
-          <div class="stat-sub">Need human help</div>
+          <div class="stat-value" id="s4">—</div>
+          <div class="stat-sub">Need attention</div>
         </div>
       </div>
       <div class="charts-row">
         <div class="chart-card">
-          <div class="chart-title">Recent Conversations</div>
-          <div class="recent-list" id="recentList">
-            <div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Loading...</div></div>
+          <div class="chart-title">
+            Message Activity
+            <span style="font-size:11px;color:var(--muted);font-weight:400">Incoming vs Outgoing</span>
           </div>
+          <canvas id="activityChart" height="120"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Conversation Status</div>
+          <canvas id="statusChart" height="120"></canvas>
+        </div>
+      </div>
+      <div class="bottom-row">
+        <div class="chart-card">
+          <div class="chart-title">Recent Conversations</div>
+          <div id="recentList"></div>
         </div>
         <div class="chart-card">
           <div class="chart-title">Quick Stats</div>
-          <div id="quickStats" style="display:flex;flex-direction:column;gap:10px;">
-            <div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Loading...</div></div>
-          </div>
+          <div id="quickStats"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- INBOX PAGE -->
+  <!-- INBOX -->
   <div class="page" id="page-inbox">
     <div id="inboxLayout">
       <div id="contactList">
-        <div class="contact-list-header">
+        <div class="cl-header">
           <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterContacts('all',this)">All</button>
-            <button class="filter-tab" onclick="filterContacts('new',this)">New</button>
-            <button class="filter-tab" onclick="filterContacts('open',this)">Open</button>
-            <button class="filter-tab" onclick="filterContacts('escalated',this)">🚨</button>
+            <button class="filter-tab active" onclick="filterC('all',this)">All</button>
+            <button class="filter-tab" onclick="filterC('new',this)">New</button>
+            <button class="filter-tab" onclick="filterC('open',this)">Open</button>
+            <button class="filter-tab" onclick="filterC('closed',this)">Closed</button>
+            <button class="filter-tab" onclick="filterC('escalated',this)">🚨</button>
           </div>
-          <input class="search-input" placeholder="Search..." oninput="searchContacts(this.value)" />
+          <input class="cl-search" placeholder="Search name or number..." oninput="searchC(this.value)"/>
         </div>
-        <div id="contactItems">
-          <div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Loading...</div></div>
-        </div>
+        <div id="contactItems"><div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">Loading...</div></div></div>
       </div>
 
       <div id="chatPanel">
-        <div class="empty-state" id="chatEmpty" style="flex:1">
-          <div class="empty-icon">💬</div>
-          <div class="empty-text">Select a conversation</div>
-        </div>
-
-        <div id="chatPanelHeader" style="display:none">
-          <div class="contact-avatar" id="chatAvatar">?</div>
-          <div class="chat-header-info">
-            <div class="chat-header-name" id="chatName">—</div>
-            <div class="chat-header-sub" id="chatSub">—</div>
+        <div class="empty-state" id="chatEmpty" style="flex:1"><div class="empty-icon">💬</div><div class="empty-text">Select a conversation to start</div></div>
+        <div id="chatHeader">
+          <div class="ch-av" id="chAv">?</div>
+          <div class="ch-info">
+            <div class="ch-name" id="chName">—</div>
+            <div class="ch-sub" id="chSub">—</div>
           </div>
-          <div class="chat-header-actions">
-            <button class="action-btn success" id="pauseBtn" onclick="togglePause()">🤖 Bot on</button>
+          <div class="ch-actions">
+            <button class="action-btn on" id="pauseBtn" onclick="togglePause()">🤖 Bot on</button>
           </div>
         </div>
-
-        <div class="paused-banner" id="pausedBanner">⏸ Bot paused — you are in control</div>
-
-        <div id="chatMessages" style="display:none"></div>
-
-        <div id="replyArea" style="display:none">
+        <div class="paused-banner" id="pausedBanner">⏸ Bot paused for this customer — you are in control</div>
+        <div id="chatMessages"></div>
+        <div class="qr-bar" id="qrBar"></div>
+        <div id="replyArea">
           <div class="reply-row">
-            <button class="attach-btn" onclick="document.getElementById('fileIn').click()">📎</button>
-            <input type="file" id="fileIn" style="display:none" accept="image/*,.pdf,.doc,.docx" onchange="handleFile(event)" />
-            <textarea class="reply-textarea" id="replyInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+            <button class="attach-btn" onclick="document.getElementById('fileIn').click()" title="Attach file">📎</button>
+            <input type="file" id="fileIn" style="display:none" accept="image/*,.pdf,.doc,.docx" onchange="handleFile(event)"/>
+            <textarea class="reply-ta" id="replyInput" placeholder="Type a message... or use / for quick replies" onkeydown="handleKey(event)" oninput="checkQR(this.value)"></textarea>
             <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send</button>
           </div>
           <div class="reply-hints">
-            <span class="reply-hint-text">Enter to send · Shift+Enter new line · 📎 attach file</span>
+            <span class="hint-text">Enter to send · Shift+Enter new line · / for quick replies · 📎 attach</span>
             <span class="send-status" id="sendStatus"></span>
           </div>
         </div>
       </div>
 
       <div id="infoPanel">
-        <div class="info-section">
-          <div class="info-section-title">👤 Contact Info</div>
-          <div class="info-row"><span class="info-key">Phone</span><span class="info-val" id="infoPhone">—</span></div>
-          <div class="info-row"><span class="info-key">First contact</span><span class="info-val" id="infoFirst">—</span></div>
-          <div class="info-row"><span class="info-key">Messages</span><span class="info-val" id="infoMsgs">—</span></div>
-          <input class="info-input" id="infoName" placeholder="Customer name..." />
-          <button class="info-save-btn" onclick="saveName()">Save Name</button>
+        <div class="info-sec">
+          <div class="info-sec-title">👤 Contact Info</div>
+          <div class="info-row"><span class="info-key">Phone</span><span class="info-val" id="iPhone">—</span></div>
+          <div class="info-row"><span class="info-key">First contact</span><span class="info-val" id="iFirst">—</span></div>
+          <div class="info-row"><span class="info-key">Messages</span><span class="info-val" id="iMsgs">—</span></div>
+          <input class="info-input" id="iName" placeholder="Add customer name..."/>
+          <button class="info-btn" onclick="saveName()">💾 Save Name</button>
         </div>
-
-        <div class="info-section">
-          <div class="info-section-title">🏷 Label</div>
+        <div class="info-sec">
+          <div class="info-sec-title">🏷 Label</div>
           <div class="label-grid" id="labelGrid">
-            <span class="label-chip tag-new" data-label="new" onclick="setLabel('new')">New</span>
-            <span class="label-chip tag-open" data-label="open" onclick="setLabel('open')">Open</span>
-            <span class="label-chip tag-closed" data-label="closed" onclick="setLabel('closed')">Closed</span>
-            <span class="label-chip tag-escalated" data-label="escalated" onclick="setLabel('escalated')">Escalated</span>
+            <span class="label-chip tag-new" data-l="new" onclick="setLabel('new')">New</span>
+            <span class="label-chip tag-open" data-l="open" onclick="setLabel('open')">Open</span>
+            <span class="label-chip tag-closed" data-l="closed" onclick="setLabel('closed')">Closed</span>
+            <span class="label-chip tag-escalated" data-l="escalated" onclick="setLabel('escalated')">Escalated</span>
           </div>
         </div>
-
-        <div class="info-section">
-          <div class="info-section-title">📝 Notes</div>
-          <textarea class="notes-textarea" id="notesInput" placeholder="Add notes about this customer..."></textarea>
-          <button class="info-save-btn" onclick="saveNotes()">Save Notes</button>
+        <div class="info-sec">
+          <div class="info-sec-title">📝 Notes</div>
+          <textarea class="notes-ta" id="iNotes" placeholder="Notes about this customer..."></textarea>
+          <button class="info-btn" onclick="saveNotes()">💾 Save Notes</button>
+        </div>
+        <div class="info-sec">
+          <div class="info-sec-title">📊 Activity</div>
+          <div class="info-row"><span class="info-key">Bot status</span><span class="info-val" id="iBotStatus">—</span></div>
+          <div class="info-row"><span class="info-key">Last message</span><span class="info-val" id="iLast">—</span></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- CONTACTS PAGE -->
+  <!-- CONTACTS -->
   <div class="page" id="page-contacts">
     <div class="page-content">
-      <div class="page-header">
-        <h2>👥 All Contacts</h2>
-        <button class="topbar-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      <div class="page-hdr"><h2>👥 Contacts</h2><button class="topbar-btn" onclick="exportCSV()">⬇ Export CSV</button></div>
+      <div class="table-actions">
+        <input class="table-search" placeholder="Search contacts..." oninput="searchTable(this.value)"/>
+        <select class="table-search" style="width:140px" onchange="filterTable(this.value)">
+          <option value="">All labels</option>
+          <option value="new">New</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+          <option value="escalated">Escalated</option>
+        </select>
       </div>
       <div class="contacts-table">
-        <div class="table-header">
-          <span>Phone Number</span>
-          <span>Name</span>
-          <span>Label</span>
-          <span>Messages</span>
-          <span>First Contact</span>
+        <div class="table-hdr"><span>Phone</span><span>Name</span><span>Label</span><span>Messages</span><span>First Contact</span></div>
+        <div id="contactsBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHONEBOOK -->
+  <div class="page" id="page-phonebook">
+    <div class="page-content">
+      <div class="page-hdr"><h2>📒 Phonebook</h2><button class="topbar-btn" onclick="exportCSV()">⬇ Export CSV</button></div>
+      <div class="pb-actions">
+        <input class="table-search" placeholder="Search phonebook..." oninput="searchTable(this.value)"/>
+      </div>
+      <div class="contacts-table">
+        <div class="table-hdr" style="grid-template-columns:2fr 2fr 1fr 1fr"><span>Phone</span><span>Name</span><span>Label</span><span>Notes</span></div>
+        <div id="phonebookBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BROADCAST -->
+  <div class="page" id="page-broadcast">
+    <div class="page-content">
+      <div class="page-hdr"><h2>📢 Broadcast</h2></div>
+      <div class="broadcast-grid">
+        <div class="bc-card">
+          <h3>Send New Campaign</h3>
+          <p>Send a WhatsApp message to all or selected customers at once.</p>
+          <div class="bc-info" id="bcInfo">📊 Loading customer count...</div>
+          <div class="form-label">CAMPAIGN NAME</div>
+          <input class="form-input" id="bcName" placeholder="e.g. June Offer" style="margin-bottom:12px"/>
+          <div class="form-label">MESSAGE</div>
+          <textarea class="bc-ta" id="bcMsg" placeholder="Type your message here...&#10;&#10;Hello! 👋 We have a special offer for you today at Sassa Solutions..."></textarea>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <button class="bc-btn" id="bcBtn" onclick="sendBroadcast()">📢 Send Campaign</button>
+            <span id="bcStatus" style="font-size:12px;color:var(--muted);display:none"></span>
+          </div>
         </div>
-        <div id="contactsTableBody">
-          <div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Loading...</div></div>
+        <div class="bc-card">
+          <h3>Campaign History</h3>
+          <p>Past broadcast campaigns and their results.</p>
+          <div id="campaignHistory"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- BROADCAST PAGE -->
-  <div class="page" id="page-broadcast">
+  <!-- QUICK REPLIES -->
+  <div class="page" id="page-quickreplies">
     <div class="page-content">
-      <div class="page-header"><h2>📢 Broadcast</h2></div>
-      <div class="broadcast-card">
-        <h3>Send Message to All Customers</h3>
-        <p>This will send a WhatsApp message to every customer who has contacted you before.</p>
-        <div class="broadcast-info" id="broadcastInfo">📊 Loading customer count...</div>
-        <div class="form-label">YOUR MESSAGE</div>
-        <textarea class="broadcast-textarea" id="broadcastMsg" placeholder="Type your message here...&#10;&#10;Example:&#10;Hello! 👋 We have a special offer for you today..."></textarea>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <button class="broadcast-btn" id="broadcastBtn" onclick="sendBroadcast()">📢 Send to All Customers</button>
-          <span id="broadcastStatus" style="font-size:13px;color:var(--muted);display:none;"></span>
-        </div>
+      <div class="page-hdr"><h2>⚡ Quick Replies</h2></div>
+      <div class="qr-grid" id="qrGrid"></div>
+      <div class="add-qr-form">
+        <h3>Add New Quick Reply</h3>
+        <div class="form-label">SHORTCUT (e.g. /hello)</div>
+        <input class="form-input" id="qrShortcut" placeholder="/greeting"/>
+        <div class="form-label">MESSAGE</div>
+        <textarea class="bc-ta" id="qrMsg" placeholder="Hello! Welcome to Sassa Solutions 👋 How can I help you today?" style="min-height:80px"></textarea>
+        <button class="bc-btn" onclick="addQR()">+ Add Quick Reply</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  // ── CONFIG ──
-  const VALID_USER = 'sassa';
-  const VALID_PASS = 'sassa2023';
-  const SB_URL = 'https://ckclcyhhaezkrjmrhplb.supabase.co';
-  const BOT_URL = 'https://whatsapp-bot-damp-shape-5114.fly.dev';
+const VALID_USER='sassa', VALID_PASS='sassa2023';
+const SB_URL='https://ckclcyhhaezkrjmrhplb.supabase.co';
+const BOT_URL='https://whatsapp-bot-damp-shape-5114.fly.dev';
 
-  let SB_KEY = '';
-  let META_TOKEN = '';
-  let PHONE_ID = '';
-  let allCustomers = [];
-  let customerMeta = {};
-  let activePhone = null;
-  let pausedNums = new Set();
-  let activeFilter = 'all';
-  let selectedFile = null;
+let SB_KEY='', META_TOKEN='', PHONE_ID='';
+let allC=[], custMeta={}, campaigns=[], quickReplies=[];
+let activePhone=null, pausedNums=new Set(), activeFilter='all', timeDays=7;
+let selectedFile=null, actChart=null, stChart=null;
 
-  // ── LOGIN ──
-  function doLogin() {
-    const u = document.getElementById('loginUser').value.trim();
-    const p = document.getElementById('loginPass').value.trim();
-    if (u === VALID_USER && p === VALID_PASS) {
-      localStorage.setItem('crm_auth', '1');
-      document.getElementById('loginScreen').style.display = 'none';
-      loadAll();
+// LOGIN
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value.trim();
+  if(u===VALID_USER&&p===VALID_PASS){
+    localStorage.setItem('crm_auth','1');
+    document.getElementById('loginScreen').style.display='none';
+    if(!SB_KEY)openSettings(); else loadAll();
+  } else {
+    const e=document.getElementById('loginError');
+    e.style.display='block';
+    setTimeout(()=>e.style.display='none',3000);
+  }
+}
+function logout(){localStorage.removeItem('crm_auth');location.reload()}
+
+// SETTINGS
+function openSettings(){document.getElementById('settingsModal').style.display='flex'}
+function closeSettings(){document.getElementById('settingsModal').style.display='none'}
+function saveSettings(){
+  const k=document.getElementById('setSbKey').value.trim();
+  const t=document.getElementById('setMetaToken').value.trim();
+  const p=document.getElementById('setPhoneId').value.trim();
+  if(k){SB_KEY=k;localStorage.setItem('sb_key',k)}
+  if(t){META_TOKEN=t;localStorage.setItem('meta_token',t)}
+  if(p){PHONE_ID=p;localStorage.setItem('phone_id',p)}
+  closeSettings();loadAll();
+}
+function loadSettings(){
+  SB_KEY=localStorage.getItem('sb_key')||'';
+  META_TOKEN=localStorage.getItem('meta_token')||'';
+  PHONE_ID=localStorage.getItem('phone_id')||'';
+  campaigns=JSON.parse(localStorage.getItem('campaigns')||'[]');
+  quickReplies=JSON.parse(localStorage.getItem('qr')||'[]');
+  if(SB_KEY)document.getElementById('setSbKey').value=SB_KEY;
+  if(META_TOKEN)document.getElementById('setMetaToken').value=META_TOKEN;
+  if(PHONE_ID)document.getElementById('setPhoneId').value=PHONE_ID;
+}
+
+window.onload=()=>{
+  loadSettings();
+  pausedNums=new Set(JSON.parse(localStorage.getItem('paused')||'[]'));
+  document.getElementById('dashDate').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  if(localStorage.getItem('crm_auth')){
+    document.getElementById('loginScreen').style.display='none';
+    if(!SB_KEY)openSettings(); else loadAll();
+  }
+};
+
+// NAVIGATION
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('pageTitle').textContent={dashboard:'Dashboard',inbox:'Inbox',contacts:'Contacts',phonebook:'Phonebook',broadcast:'Broadcast',quickreplies:'Quick Replies'}[name]||name;
+  if(el)el.classList.add('active');
+  const showFilter=['dashboard'].includes(name);
+  document.getElementById('timeFilter').style.display=showFilter?'flex':'none';
+  if(name==='broadcast')loadBCInfo();
+  if(name==='quickreplies')renderQR();
+  if(name==='phonebook')renderPhonebook();
+}
+
+function setTimeFilter(days,el){
+  timeDays=days;
+  document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  loadDashboard();
+}
+
+// SUPABASE
+async function sbGet(path){
+  const r=await fetch(`${SB_URL}/rest/v1/${path}`,{headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`}});
+  return r.json();
+}
+async function sbPost(path,data){
+  return fetch(`${SB_URL}/rest/v1/${path}`,{method:'POST',headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(data)});
+}
+
+// LOAD
+async function loadAll(){
+  if(!SB_KEY)return;
+  await loadConvs();
+  loadDashboard();
+  renderContactList();
+  renderContactsTable();
+}
+
+async function loadConvs(){
+  try{
+    const data=await sbGet('conversations?select=phone_number,role,content,created_at&order=created_at.asc');
+    if(!Array.isArray(data))return;
+    const map={};
+    data.forEach(row=>{
+      if(!map[row.phone_number])map[row.phone_number]=[];
+      map[row.phone_number].push(row);
+    });
+    allC=Object.entries(map).map(([phone,msgs])=>({
+      phone,msgs,
+      lastMsg:msgs[msgs.length-1],
+      lastTime:msgs[msgs.length-1].created_at,
+      hasEsc:msgs.some(m=>m.content?.includes('[ESCALATE]'))
+    })).sort((a,b)=>new Date(b.lastTime)-new Date(a.lastTime));
+    try{
+      const meta=await sbGet('customer_profiles?select=*');
+      if(Array.isArray(meta))meta.forEach(m=>{custMeta[m.phone_number]=m});
+    }catch(e){}
+    // Badge
+    const newCount=allC.filter(c=>(custMeta[c.phone]?.label||'new')==='new').length;
+    const badge=document.getElementById('newBadge');
+    badge.style.display=newCount>0?'inline':'none';
+    badge.textContent=newCount;
+  }catch(e){console.error(e)}
+}
+
+// DASHBOARD
+function loadDashboard(){
+  const now=new Date();
+  const cutoff=new Date(now-timeDays*86400000);
+  const filtered=allC.filter(c=>new Date(c.lastTime)>=cutoff||timeDays===90);
+  const totalC=allC.length;
+  const totalM=allC.reduce((s,c)=>s+c.msgs.length,0);
+  const todayM=allC.reduce((s,c)=>s+c.msgs.filter(m=>new Date(m.created_at).toDateString()===now.toDateString()).length,0);
+  const escs=allC.filter(c=>c.hasEsc).length;
+  document.getElementById('s1').textContent=totalC;
+  document.getElementById('s2').textContent=totalM;
+  document.getElementById('s3').textContent=todayM;
+  document.getElementById('s4').textContent=escs;
+
+  // Activity Chart - messages per day
+  const days=[];
+  const incoming=[];
+  const outgoing=[];
+  for(let i=Math.min(timeDays,14)-1;i>=0;i--){
+    const d=new Date(now-i*86400000);
+    const ds=d.toDateString();
+    days.push(d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}));
+    let inc=0,out=0;
+    allC.forEach(c=>c.msgs.forEach(m=>{
+      if(new Date(m.created_at).toDateString()===ds){
+        if(m.role==='user')inc++;else out++;
+      }
+    }));
+    incoming.push(inc);outgoing.push(out);
+  }
+
+  if(actChart)actChart.destroy();
+  const actCtx=document.getElementById('activityChart').getContext('2d');
+  actChart=new Chart(actCtx,{
+    type:'bar',
+    data:{
+      labels:days,
+      datasets:[
+        {label:'Incoming',data:incoming,backgroundColor:'rgba(108,99,255,0.7)',borderRadius:4},
+        {label:'Outgoing',data:outgoing,backgroundColor:'rgba(78,205,196,0.7)',borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#7b82a0',font:{size:11}}}},
+      scales:{
+        x:{grid:{color:'rgba(42,48,80,0.5)'},ticks:{color:'#7b82a0',font:{size:10}}},
+        y:{grid:{color:'rgba(42,48,80,0.5)'},ticks:{color:'#7b82a0',font:{size:10},stepSize:1}}
+      }
+    }
+  });
+
+  // Status Chart
+  const labels2={new:0,open:0,closed:0,escalated:0};
+  allC.forEach(c=>{const l=custMeta[c.phone]?.label||'new';labels2[l]=(labels2[l]||0)+1});
+  if(stChart)stChart.destroy();
+  const stCtx=document.getElementById('statusChart').getContext('2d');
+  stChart=new Chart(stCtx,{
+    type:'doughnut',
+    data:{
+      labels:['New','Open','Closed','Escalated'],
+      datasets:[{data:[labels2.new,labels2.open,labels2.closed,labels2.escalated],backgroundColor:['#6c63ff','#4ecdc4','#7b82a0','#ff6b6b'],borderWidth:0,borderRadius:4}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:'#7b82a0',font:{size:11},padding:12}}}
+    }
+  });
+
+  // Recent list
+  const rl=document.getElementById('recentList');
+  rl.innerHTML='';
+  allC.slice(0,5).forEach(c=>{
+    const m=custMeta[c.phone]||{};
+    const name=m.name||`+${c.phone}`;
+    const preview=(c.lastMsg.content||'').replace('[ESCALATE]','').replace('[HUMAN]','').trim().slice(0,45);
+    const div=document.createElement('div');
+    div.className='recent-item';
+    div.onclick=()=>{showPage('inbox',document.querySelector('.nav-item:nth-child(2)'));setTimeout(()=>openChat(c.phone),100)};
+    div.innerHTML=`<div class="recent-av" style="background:${sc(c.phone)}">${name[0].toUpperCase()}</div><div class="recent-info"><div class="recent-name">${name}</div><div class="recent-msg">${preview||'—'}</div></div><div class="recent-time">${ft(c.lastTime)}</div>`;
+    rl.appendChild(div);
+  });
+  if(!allC.length)rl.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">No conversations yet</div></div>';
+
+  // Quick stats
+  const qs=document.getElementById('quickStats');
+  qs.innerHTML=[
+    ['🆕 New customers',labels2.new||0],
+    ['🔓 Open conversations',labels2.open||0],
+    ['✅ Closed conversations',labels2.closed||0],
+    ['🚨 Escalations',escs],
+    ['⏸ Bot paused',pausedNums.size],
+    ['📢 Campaigns sent',campaigns.length],
+  ].map(([k,v])=>`<div class="qs-row"><span class="qs-key">${k}</span><span class="qs-val">${v}</span></div>`).join('');
+}
+
+// CONTACT LIST
+function renderContactList(){
+  const el=document.getElementById('contactItems');
+  let list=allC;
+  if(activeFilter!=='all'){
+    list=list.filter(c=>{
+      const l=custMeta[c.phone]?.label||'new';
+      if(activeFilter==='escalated')return c.hasEsc;
+      return l===activeFilter;
+    });
+  }
+  el.innerHTML='';
+  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">No conversations</div></div>';return}
+  list.forEach(c=>{
+    const m=custMeta[c.phone]||{};
+    const name=m.name||`+${c.phone}`;
+    const label=m.label||'new';
+    const paused=pausedNums.has(c.phone);
+    const preview=(c.lastMsg.content||'').replace('[ESCALATE]','').replace('[HUMAN]','').trim().slice(0,45);
+    const div=document.createElement('div');
+    div.className='contact-item'+(c.phone===activePhone?' active':'');
+    div.onclick=()=>openChat(c.phone);
+    div.innerHTML=`<div class="c-av" style="background:${sc(c.phone)}">${name[0].toUpperCase()}</div><div class="c-body"><div class="c-top"><span class="c-name">${name}</span><span class="c-time">${ft(c.lastTime)}</span></div><div class="c-preview">${preview||'—'}</div><div class="c-tags"><span class="tag tag-${label}">${label}</span>${c.hasEsc?'<span class="tag tag-escalated">escalated</span>':''}${paused?'<span class="tag tag-paused">paused</span>':''}</div></div>`;
+    el.appendChild(div);
+  });
+}
+
+function filterC(f,el){
+  activeFilter=f;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderContactList();
+}
+
+function searchC(q){
+  const el=document.getElementById('contactItems');
+  el.innerHTML='';
+  allC.filter(c=>{
+    const m=custMeta[c.phone]||{};
+    return c.phone.includes(q)||(m.name||'').toLowerCase().includes(q.toLowerCase());
+  }).forEach(c=>{
+    const m=custMeta[c.phone]||{};
+    const name=m.name||`+${c.phone}`;
+    const label=m.label||'new';
+    const preview=(c.lastMsg.content||'').replace('[ESCALATE]','').replace('[HUMAN]','').trim().slice(0,45);
+    const div=document.createElement('div');
+    div.className='contact-item'+(c.phone===activePhone?' active':'');
+    div.onclick=()=>openChat(c.phone);
+    div.innerHTML=`<div class="c-av" style="background:${sc(c.phone)}">${name[0].toUpperCase()}</div><div class="c-body"><div class="c-top"><span class="c-name">${name}</span><span class="c-time">${ft(c.lastTime)}</span></div><div class="c-preview">${preview||'—'}</div><div class="c-tags"><span class="tag tag-${label}">${label}</span></div></div>`;
+    el.appendChild(div);
+  });
+}
+
+function globalSearch(q){
+  if(!q){showPage('dashboard',document.querySelector('.nav-item'));return}
+  showPage('inbox',document.querySelector('.nav-item:nth-child(2)'));
+  searchC(q);
+}
+
+// OPEN CHAT
+function openChat(phone){
+  activePhone=phone;
+  renderContactList();
+  const c=allC.find(x=>x.phone===phone);
+  if(!c)return;
+  const m=custMeta[phone]||{};
+  const name=m.name||`+${phone}`;
+  const paused=pausedNums.has(phone);
+
+  document.getElementById('chatEmpty').style.display='none';
+  document.getElementById('chatHeader').style.display='flex';
+  document.getElementById('chatMessages').style.display='flex';
+  document.getElementById('replyArea').style.display='flex';
+  document.getElementById('qrBar').style.display='flex';
+
+  document.getElementById('chAv').textContent=name[0].toUpperCase();
+  document.getElementById('chAv').style.background=sc(phone);
+  document.getElementById('chName').textContent=name;
+  document.getElementById('chSub').textContent=`+${phone} · ${c.msgs.length} messages`;
+
+  // Info panel
+  document.getElementById('iPhone').textContent=`+${phone}`;
+  document.getElementById('iFirst').textContent=ft(c.msgs[0]?.created_at);
+  document.getElementById('iMsgs').textContent=c.msgs.length;
+  document.getElementById('iName').value=m.name||'';
+  document.getElementById('iNotes').value=m.notes||'';
+  document.getElementById('iBotStatus').textContent=paused?'⏸ Paused':'🤖 Active';
+  document.getElementById('iLast').textContent=ft(c.lastTime);
+  updateLabelUI(m.label||'new');
+  updatePauseBtn(paused);
+
+  // Render quick replies bar
+  const qrBar=document.getElementById('qrBar');
+  qrBar.innerHTML='';
+  quickReplies.forEach(qr=>{
+    const chip=document.createElement('span');
+    chip.className='qr-chip';
+    chip.textContent=qr.shortcut;
+    chip.onclick=()=>{document.getElementById('replyInput').value=qr.message};
+    qrBar.appendChild(chip);
+  });
+
+  // Messages
+  const msgsEl=document.getElementById('chatMessages');
+  msgsEl.innerHTML='';
+  c.msgs.forEach(msg=>{
+    const isHuman=msg.content?.startsWith('[HUMAN]');
+    const isMedia=msg.content?.includes('[MEDIA:');
+    const wrap=document.createElement('div');
+    wrap.className=`msg-wrap ${isHuman?'human-reply':msg.role}`;
+    const lbl=msg.role==='user'?'👤 Customer':isHuman?'👨‍💼 You':'🤖 Sassa Bot';
+    let content=(msg.content||'').replace('[ESCALATE]','').replace('[HUMAN]','').trim();
+    if(isMedia){const mm=content.match(/\[MEDIA:(\w+):([^\]]*)\]/);if(mm){const icons={image:'🖼',audio:'🎤',video:'🎥',document:'📄'};content=`${icons[mm[1]]||'📎'} ${mm[1]} file`;}}
+    wrap.innerHTML=`<div class="msg-sender">${lbl}</div><div class="msg-bubble">${content}</div><div class="msg-time">${ft(msg.created_at)}</div>`;
+    msgsEl.appendChild(wrap);
+  });
+  msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+
+// PAUSE
+function togglePause(){
+  if(!activePhone)return;
+  const p=pausedNums.has(activePhone);
+  if(p)pausedNums.delete(activePhone);else pausedNums.add(activePhone);
+  localStorage.setItem('paused',JSON.stringify([...pausedNums]));
+  updatePauseBtn(!p);
+  document.getElementById('iBotStatus').textContent=!p?'⏸ Paused':'🤖 Active';
+  renderContactList();
+}
+function updatePauseBtn(p){
+  const btn=document.getElementById('pauseBtn');
+  const banner=document.getElementById('pausedBanner');
+  btn.textContent=p?'▶ Resume bot':'🤖 Bot on';
+  btn.className=p?'action-btn off':'action-btn on';
+  banner.style.display=p?'block':'none';
+}
+
+// SEND
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}}
+function handleFile(e){selectedFile=e.target.files[0]||null;if(selectedFile)showSS(`📎 ${selectedFile.name}`,'ok')}
+function checkQR(val){
+  if(val.startsWith('/')){
+    const match=quickReplies.find(qr=>qr.shortcut.startsWith(val));
+    if(match)document.getElementById('replyInput').value=match.message;
+  }
+}
+
+async function sendMsg(){
+  const input=document.getElementById('replyInput');
+  const text=input.value.trim();
+  if(!text&&!selectedFile)return;
+  if(!activePhone||!META_TOKEN||!PHONE_ID){showSS('⚙ Add credentials in Settings','err');openSettings();return}
+  const btn=document.getElementById('sendBtn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
+  try{
+    if(selectedFile){
+      const fd=new FormData();
+      fd.append('file',selectedFile);fd.append('to',activePhone);
+      if(text)fd.append('caption',text);
+      const r=await fetch(`${BOT_URL}/send-media`,{method:'POST',body:fd});
+      if(!r.ok)throw new Error('File send failed');
+      selectedFile=null;document.getElementById('fileIn').value='';
     } else {
-      const e = document.getElementById('loginError');
-      e.style.display = 'block';
-      setTimeout(() => e.style.display = 'none', 3000);
-    }
-  }
-
-  function logout() {
-    localStorage.removeItem('crm_auth');
-    location.reload();
-  }
-
-  // ── SETTINGS ──
-  function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
-  function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
-
-  function saveSettings() {
-    const k = document.getElementById('setSbKey').value.trim();
-    const t = document.getElementById('setMetaToken').value.trim();
-    const p = document.getElementById('setPhoneId').value.trim();
-    if (k) { SB_KEY = k; localStorage.setItem('sb_key', k); }
-    if (t) { META_TOKEN = t; localStorage.setItem('meta_token', t); }
-    if (p) { PHONE_ID = p; localStorage.setItem('phone_id', p); }
-    closeSettings();
-    loadAll();
-  }
-
-  function loadSettings() {
-    SB_KEY = localStorage.getItem('sb_key') || '';
-    META_TOKEN = localStorage.getItem('meta_token') || '';
-    PHONE_ID = localStorage.getItem('phone_id') || '';
-    if (SB_KEY) document.getElementById('setSbKey').value = SB_KEY;
-    if (META_TOKEN) document.getElementById('setMetaToken').value = META_TOKEN;
-    if (PHONE_ID) document.getElementById('setPhoneId').value = PHONE_ID;
-  }
-
-  // ── INIT ──
-  window.onload = () => {
-    loadSettings();
-    pausedNums = new Set(JSON.parse(localStorage.getItem('paused') || '[]'));
-    if (localStorage.getItem('crm_auth')) {
-      document.getElementById('loginScreen').style.display = 'none';
-      if (!SB_KEY) { openSettings(); } else { loadAll(); }
-    }
-  };
-
-  // ── NAVIGATION ──
-  function showPage(name) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + name).classList.add('active');
-    document.getElementById('pageTitle').textContent = {
-      dashboard: 'Dashboard', inbox: 'Inbox',
-      contacts: 'Contacts', broadcast: 'Broadcast'
-    }[name] || name;
-    event?.target?.closest('.nav-item')?.classList.add('active');
-    if (name === 'broadcast') loadBroadcastInfo();
-  }
-
-  function refreshAll() { loadAll(); }
-
-  // ── SUPABASE FETCH ──
-  async function sbFetch(path) {
-    const r = await fetch(`${SB_URL}/rest/v1/${path}`, {
-      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
-    });
-    return r.json();
-  }
-
-  async function sbPost(path, data) {
-    return fetch(`${SB_URL}/rest/v1/${path}`, {
-      method: 'POST',
-      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify(data)
-    });
-  }
-
-  async function sbPatch(path, data) {
-    return fetch(`${SB_URL}/rest/v1/${path}`, {
-      method: 'PATCH',
-      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-  }
-
-  // ── LOAD ALL DATA ──
-  async function loadAll() {
-    if (!SB_KEY) return;
-    await loadConversations();
-    loadDashboard();
-    renderContactList();
-    renderContactsTable();
-  }
-
-  async function loadConversations() {
-    try {
-      const data = await sbFetch('conversations?select=phone_number,role,content,created_at&order=created_at.asc');
-      if (!Array.isArray(data)) return;
-      const map = {};
-      data.forEach(row => {
-        if (!map[row.phone_number]) map[row.phone_number] = [];
-        map[row.phone_number].push(row);
+      const r=await fetch(`https://graph.facebook.com/v18.0/${PHONE_ID}/messages`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json',Authorization:`Bearer ${META_TOKEN}`},
+        body:JSON.stringify({messaging_product:'whatsapp',to:activePhone,type:'text',text:{body:text}})
       });
-      allCustomers = Object.entries(map).map(([phone, msgs]) => ({
-        phone, msgs,
-        lastMsg: msgs[msgs.length - 1],
-        lastTime: msgs[msgs.length - 1].created_at,
-        hasEscalation: msgs.some(m => m.content?.includes('[ESCALATE]'))
-      })).sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
-
-      // Load customer meta (names, labels, notes)
-      try {
-        const meta = await sbFetch('customer_profiles?select=*');
-        if (Array.isArray(meta)) {
-          meta.forEach(m => { customerMeta[m.phone_number] = m; });
-        }
-      } catch(e) {}
-    } catch(e) { console.error(e); }
-  }
-
-  // ── DASHBOARD ──
-  function loadDashboard() {
-    const totalCustomers = allCustomers.length;
-    const totalMessages = allCustomers.reduce((s, c) => s + c.msgs.length, 0);
-    const today = new Date().toDateString();
-    const todayMsgs = allCustomers.reduce((s, c) => s + c.msgs.filter(m => new Date(m.created_at).toDateString() === today).length, 0);
-    const escalations = allCustomers.filter(c => c.hasEscalation).length;
-
-    document.getElementById('statCustomers').textContent = totalCustomers;
-    document.getElementById('statMessages').textContent = totalMessages;
-    document.getElementById('statToday').textContent = todayMsgs;
-    document.getElementById('statEscalations').textContent = escalations;
-
-    // Recent list
-    const recentList = document.getElementById('recentList');
-    recentList.innerHTML = '';
-    allCustomers.slice(0, 5).forEach(c => {
-      const meta = customerMeta[c.phone] || {};
-      const name = meta.name || `+${c.phone}`;
-      const preview = c.lastMsg.content?.replace('[ESCALATE]','').replace('[HUMAN]','').trim().slice(0,40);
-      const div = document.createElement('div');
-      div.className = 'recent-item';
-      div.onclick = () => { showPage('inbox'); setTimeout(() => openChat(c.phone), 100); };
-      div.style.cursor = 'pointer';
-      div.innerHTML = `
-        <div class="recent-avatar" style="background:${strColor(c.phone)}">${name[0].toUpperCase()}</div>
-        <div class="recent-info">
-          <div class="recent-phone">${name}</div>
-          <div class="recent-msg">${preview || '—'}</div>
-        </div>
-        <div class="recent-time">${fmtTime(c.lastTime)}</div>
-      `;
-      recentList.appendChild(div);
-    });
-
-    if (!allCustomers.length) {
-      recentList.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">No conversations yet</div></div>';
+      if(!r.ok)throw new Error('Send failed');
+      await sbPost('conversations',{phone_number:activePhone,role:'assistant',content:`[HUMAN] ${text}`});
     }
+    input.value='';showSS('✅ Sent!','ok');
+    await loadConvs();openChat(activePhone);
+  }catch(e){showSS(`❌ ${e.message}`,'err')}
+  btn.disabled=false;btn.textContent='Send';
+}
+function showSS(msg,type){
+  const el=document.getElementById('sendStatus');
+  el.textContent=msg;el.className=`send-status ${type}`;el.style.display='block';
+  setTimeout(()=>el.style.display='none',3000);
+}
 
-    // Quick stats
-    const qs = document.getElementById('quickStats');
-    const labels = {};
-    allCustomers.forEach(c => {
-      const l = customerMeta[c.phone]?.label || 'new';
-      labels[l] = (labels[l] || 0) + 1;
-    });
-    qs.innerHTML = Object.entries({
-      '🆕 New': labels.new || 0,
-      '🔓 Open': labels.open || 0,
-      '✅ Closed': labels.closed || 0,
-      '🚨 Escalated': escalations,
-      '⏸ Bot paused': pausedNums.size,
-    }).map(([k,v]) => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--surface2);border-radius:8px;font-size:13px;">
-        <span style="color:var(--muted)">${k}</span>
-        <span style="font-weight:600">${v}</span>
+// META MANAGEMENT
+async function saveName(){
+  if(!activePhone)return;
+  const name=document.getElementById('iName').value.trim();
+  await upsertMeta(activePhone,{name});
+  document.getElementById('chName').textContent=name||`+${activePhone}`;
+  await loadConvs();renderContactList();
+}
+async function saveNotes(){
+  if(!activePhone)return;
+  await upsertMeta(activePhone,{notes:document.getElementById('iNotes').value.trim()});
+  showSS('✅ Notes saved','ok');
+}
+async function setLabel(label){
+  if(!activePhone)return;
+  await upsertMeta(activePhone,{label});
+  updateLabelUI(label);
+  await loadConvs();renderContactList();
+}
+function updateLabelUI(label){
+  document.querySelectorAll('.label-chip').forEach(c=>c.classList.toggle('selected',c.dataset.l===label));
+}
+async function upsertMeta(phone,data){
+  if(!custMeta[phone])custMeta[phone]={phone_number:phone};
+  Object.assign(custMeta[phone],data);
+  try{await sbPost('customer_profiles',{phone_number:phone,...data})}catch(e){}
+}
+
+// CONTACTS TABLE
+function renderContactsTable(){
+  const body=document.getElementById('contactsBody');
+  body.innerHTML='';
+  if(!allC.length){body.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No contacts yet</div></div>';return}
+  allC.forEach(c=>{
+    const m=custMeta[c.phone]||{};
+    const label=m.label||'new';
+    const row=document.createElement('div');
+    row.className='table-row';
+    row.onclick=()=>{showPage('inbox',document.querySelector('.nav-item:nth-child(2)'));setTimeout(()=>openChat(c.phone),100)};
+    row.innerHTML=`<span class="table-phone">+${c.phone}</span><span>${m.name||'—'}</span><span><span class="tag tag-${label}">${label}</span></span><span>${c.msgs.length}</span><span>${ft(c.msgs[0]?.created_at)}</span>`;
+    body.appendChild(row);
+  });
+}
+
+function searchTable(q){
+  renderContactsTable();
+  const rows=document.querySelectorAll('#contactsBody .table-row');
+  rows.forEach(r=>{
+    const text=r.textContent.toLowerCase();
+    r.style.display=text.includes(q.toLowerCase())?'':'none';
+  });
+}
+function filterTable(label){
+  renderContactsTable();
+  if(!label)return;
+  document.querySelectorAll('#contactsBody .table-row').forEach(r=>{
+    r.style.display=r.textContent.includes(label)?'':'none';
+  });
+}
+
+// PHONEBOOK
+function renderPhonebook(){
+  const body=document.getElementById('phonebookBody');
+  body.innerHTML='';
+  if(!allC.length){body.innerHTML='<div class="empty-state"><div class="empty-icon">📒</div><div class="empty-text">No contacts yet</div></div>';return}
+  allC.forEach(c=>{
+    const m=custMeta[c.phone]||{};
+    const label=m.label||'new';
+    const row=document.createElement('div');
+    row.className='table-row';
+    row.style.gridTemplateColumns='2fr 2fr 1fr 1fr';
+    row.onclick=()=>{showPage('inbox',document.querySelector('.nav-item:nth-child(2)'));setTimeout(()=>openChat(c.phone),100)};
+    row.innerHTML=`<span class="table-phone">+${c.phone}</span><span>${m.name||'—'}</span><span><span class="tag tag-${label}">${label}</span></span><span style="color:var(--muted);font-size:11px">${(m.notes||'').slice(0,30)||'—'}</span>`;
+    body.appendChild(row);
+  });
+}
+
+// EXPORT CSV
+function exportCSV(){
+  const rows=[['Phone','Name','Label','Messages','First Contact','Notes']];
+  allC.forEach(c=>{const m=custMeta[c.phone]||{};rows.push([`+${c.phone}`,m.name||'',m.label||'new',c.msgs.length,ft(c.msgs[0]?.created_at),m.notes||''])});
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='sassa-contacts.csv';a.click();
+}
+
+// BROADCAST
+function loadBCInfo(){
+  loadConvs().then(()=>{
+    document.getElementById('bcInfo').textContent=`📊 ${allC.length} customers will receive this message`;
+  });
+  renderCampaignHistory();
+}
+function renderCampaignHistory(){
+  const el=document.getElementById('campaignHistory');
+  if(!campaigns.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📢</div><div class="empty-text">No campaigns yet</div></div>';return}
+  el.innerHTML=campaigns.slice().reverse().map(c=>`
+    <div class="campaign-item">
+      <div class="campaign-top"><span class="campaign-name">${c.name||'Campaign'}</span><span class="campaign-date">${ft(c.date)}</span></div>
+      <div class="campaign-msg">${c.message}</div>
+      <div class="campaign-stats"><span class="cs-sent">✅ Sent: ${c.sent}</span><span class="cs-failed">❌ Failed: ${c.failed}</span></div>
+    </div>
+  `).join('');
+}
+async function sendBroadcast(){
+  const msg=document.getElementById('bcMsg').value.trim();
+  const name=document.getElementById('bcName').value.trim()||'Campaign';
+  if(!msg){alert('Please type a message');return}
+  if(!META_TOKEN||!PHONE_ID){openSettings();return}
+  if(!confirm(`Send to all ${allC.length} customers?`))return;
+  const btn=document.getElementById('bcBtn');
+  const status=document.getElementById('bcStatus');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Sending...';
+  status.style.display='inline';
+  let sent=0,failed=0;
+  for(const c of allC){
+    try{
+      const r=await fetch(`https://graph.facebook.com/v18.0/${PHONE_ID}/messages`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json',Authorization:`Bearer ${META_TOKEN}`},
+        body:JSON.stringify({messaging_product:'whatsapp',to:c.phone,type:'text',text:{body:msg}})
+      });
+      if(r.ok)sent++;else failed++;
+    }catch{failed++}
+    status.textContent=`Sending... ${sent+failed}/${allC.length}`;
+    await new Promise(r=>setTimeout(r,600));
+  }
+  const campaign={name,message:msg,date:new Date().toISOString(),sent,failed};
+  campaigns.push(campaign);
+  localStorage.setItem('campaigns',JSON.stringify(campaigns));
+  btn.disabled=false;btn.textContent='📢 Send Campaign';
+  status.textContent=`✅ Done! Sent: ${sent}, Failed: ${failed}`;
+  document.getElementById('bcMsg').value='';
+  document.getElementById('bcName').value='';
+  renderCampaignHistory();
+  setTimeout(()=>status.style.display='none',5000);
+}
+
+// QUICK REPLIES
+function renderQR(){
+  const grid=document.getElementById('qrGrid');
+  grid.innerHTML='';
+  if(!quickReplies.length){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚡</div><div class="empty-text">No quick replies yet. Add one below!</div></div>';
+    return;
+  }
+  quickReplies.forEach((qr,i)=>{
+    const div=document.createElement('div');
+    div.className='qr-card';
+    div.innerHTML=`
+      <div class="qr-title">${qr.shortcut}</div>
+      <div class="qr-body">${qr.message}</div>
+      <div class="qr-actions">
+        <button class="qr-use-btn" onclick="useQR(${i})">Use in chat</button>
+        <button class="qr-del-btn" onclick="deleteQR(${i})">Delete</button>
       </div>
-    `).join('');
-  }
+    `;
+    grid.appendChild(div);
+  });
+}
+function addQR(){
+  const s=document.getElementById('qrShortcut').value.trim();
+  const m=document.getElementById('qrMsg').value.trim();
+  if(!s||!m){alert('Please fill in both fields');return}
+  const shortcut=s.startsWith('/')?s:'/'+s;
+  quickReplies.push({shortcut,message:m});
+  localStorage.setItem('qr',JSON.stringify(quickReplies));
+  document.getElementById('qrShortcut').value='';
+  document.getElementById('qrMsg').value='';
+  renderQR();
+}
+function deleteQR(i){
+  quickReplies.splice(i,1);
+  localStorage.setItem('qr',JSON.stringify(quickReplies));
+  renderQR();
+}
+function useQR(i){
+  showPage('inbox',document.querySelector('.nav-item:nth-child(2)'));
+  setTimeout(()=>{document.getElementById('replyInput').value=quickReplies[i].message},100);
+}
 
-  // ── CONTACT LIST (INBOX) ──
-  function renderContactList() {
-    const items = document.getElementById('contactItems');
-    let filtered = allCustomers;
-
-    if (activeFilter !== 'all') {
-      filtered = filtered.filter(c => {
-        const label = customerMeta[c.phone]?.label || 'new';
-        if (activeFilter === 'escalated') return c.hasEscalation;
-        return label === activeFilter;
-      });
-    }
-
-    items.innerHTML = '';
-    if (!filtered.length) {
-      items.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-text">No conversations</div></div>';
-      return;
-    }
-
-    filtered.forEach(c => {
-      const meta = customerMeta[c.phone] || {};
-      const name = meta.name || `+${c.phone}`;
-      const label = meta.label || 'new';
-      const isPaused = pausedNums.has(c.phone);
-      const preview = c.lastMsg.content?.replace('[ESCALATE]','').replace('[HUMAN]','').trim().slice(0,45);
-      const div = document.createElement('div');
-      div.className = 'contact-item' + (c.phone === activePhone ? ' active' : '');
-      div.onclick = () => openChat(c.phone);
-      div.innerHTML = `
-        <div class="contact-avatar" style="background:${strColor(c.phone)}">${name[0].toUpperCase()}</div>
-        <div class="contact-body">
-          <div class="contact-top">
-            <span class="contact-name">${name}</span>
-            <span class="contact-time">${fmtTime(c.lastTime)}</span>
-          </div>
-          <div class="contact-preview">${preview || '—'}</div>
-          <div class="contact-tags">
-            <span class="tag tag-${label}">${label}</span>
-            ${c.hasEscalation ? '<span class="tag tag-escalated">escalated</span>' : ''}
-            ${isPaused ? '<span class="tag tag-paused">paused</span>' : ''}
-          </div>
-        </div>
-      `;
-      items.appendChild(div);
-    });
-
-    // Update unread badge
-    const newCount = allCustomers.filter(c => (customerMeta[c.phone]?.label || 'new') === 'new').length;
-    const badge = document.getElementById('unreadBadge');
-    badge.style.display = newCount > 0 ? 'inline' : 'none';
-    badge.textContent = newCount;
-  }
-
-  function filterContacts(f, el) {
-    activeFilter = f;
-    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    renderContactList();
-  }
-
-  function searchContacts(q) {
-    const items = document.getElementById('contactItems');
-    items.innerHTML = '';
-    const filtered = allCustomers.filter(c => {
-      const meta = customerMeta[c.phone] || {};
-      return c.phone.includes(q) || (meta.name || '').toLowerCase().includes(q.toLowerCase());
-    });
-    filtered.forEach(c => {
-      const meta = customerMeta[c.phone] || {};
-      const name = meta.name || `+${c.phone}`;
-      const label = meta.label || 'new';
-      const preview = c.lastMsg.content?.replace('[ESCALATE]','').replace('[HUMAN]','').trim().slice(0,45);
-      const div = document.createElement('div');
-      div.className = 'contact-item' + (c.phone === activePhone ? ' active' : '');
-      div.onclick = () => openChat(c.phone);
-      div.innerHTML = `
-        <div class="contact-avatar" style="background:${strColor(c.phone)}">${name[0].toUpperCase()}</div>
-        <div class="contact-body">
-          <div class="contact-top">
-            <span class="contact-name">${name}</span>
-            <span class="contact-time">${fmtTime(c.lastTime)}</span>
-          </div>
-          <div class="contact-preview">${preview || '—'}</div>
-          <div class="contact-tags"><span class="tag tag-${label}">${label}</span></div>
-        </div>
-      `;
-      items.appendChild(div);
-    });
-  }
-
-  // ── OPEN CHAT ──
-  function openChat(phone) {
-    activePhone = phone;
-    renderContactList();
-
-    const customer = allCustomers.find(c => c.phone === phone);
-    if (!customer) return;
-
-    const meta = customerMeta[phone] || {};
-    const name = meta.name || `+${phone}`;
-    const isPaused = pausedNums.has(phone);
-
-    document.getElementById('chatEmpty').style.display = 'none';
-    document.getElementById('chatPanelHeader').style.display = 'flex';
-    document.getElementById('chatMessages').style.display = 'flex';
-    document.getElementById('replyArea').style.display = 'flex';
-
-    document.getElementById('chatAvatar').textContent = name[0].toUpperCase();
-    document.getElementById('chatAvatar').style.background = strColor(phone);
-    document.getElementById('chatName').textContent = name;
-    document.getElementById('chatSub').textContent = `+${phone} · ${customer.msgs.length} messages`;
-
-    updatePauseBtn(isPaused);
-
-    // Info panel
-    document.getElementById('infoPhone').textContent = `+${phone}`;
-    document.getElementById('infoFirst').textContent = fmtTime(customer.msgs[0]?.created_at);
-    document.getElementById('infoMsgs').textContent = customer.msgs.length;
-    document.getElementById('infoName').value = meta.name || '';
-    document.getElementById('notesInput').value = meta.notes || '';
-    updateLabelUI(meta.label || 'new');
-
-    // Render messages
-    const msgsEl = document.getElementById('chatMessages');
-    msgsEl.innerHTML = '';
-    customer.msgs.forEach(msg => {
-      const isHuman = msg.content?.startsWith('[HUMAN]');
-      const isMedia = msg.content?.includes('[MEDIA:');
-      const wrapper = document.createElement('div');
-      wrapper.className = `msg-wrap ${isHuman ? 'human-reply' : msg.role}`;
-      const label = msg.role === 'user' ? '👤 Customer' : isHuman ? '👨‍💼 You' : '🤖 Bot';
-      let content = msg.content?.replace('[ESCALATE]','').replace('[HUMAN]','').trim();
-      if (isMedia) {
-        const m = content.match(/\[MEDIA:(\w+):([^\]]*)\]/);
-        if (m) {
-          const icons = {image:'🖼',audio:'🎤',video:'🎥',document:'📄'};
-          content = `${icons[m[1]]||'📎'} ${m[1]} file`;
-        }
-      }
-      wrapper.innerHTML = `
-        <div class="msg-sender">${label}</div>
-        <div class="msg-bubble">${content}</div>
-        <div class="msg-time">${fmtTime(msg.created_at)}</div>
-      `;
-      msgsEl.appendChild(wrapper);
-    });
-    msgsEl.scrollTop = msgsEl.scrollHeight;
-  }
-
-  // ── PAUSE BOT ──
-  function togglePause() {
-    if (!activePhone) return;
-    const isPaused = pausedNums.has(activePhone);
-    if (isPaused) pausedNums.delete(activePhone);
-    else pausedNums.add(activePhone);
-    localStorage.setItem('paused', JSON.stringify([...pausedNums]));
-    updatePauseBtn(!isPaused);
-    renderContactList();
-  }
-
-  function updatePauseBtn(isPaused) {
-    const btn = document.getElementById('pauseBtn');
-    const banner = document.getElementById('pausedBanner');
-    if (isPaused) {
-      btn.textContent = '▶ Resume bot';
-      btn.className = 'action-btn danger';
-      banner.style.display = 'block';
-    } else {
-      btn.textContent = '🤖 Bot on';
-      btn.className = 'action-btn success';
-      banner.style.display = 'none';
-    }
-  }
-
-  // ── SEND MESSAGE ──
-  async function sendMsg() {
-    const input = document.getElementById('replyInput');
-    const text = input.value.trim();
-    if (!text && !selectedFile) return;
-    if (!activePhone || !META_TOKEN || !PHONE_ID) {
-      showStatus('⚙ Add credentials in Settings', 'err');
-      openSettings();
-      return;
-    }
-
-    const btn = document.getElementById('sendBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>';
-
-    try {
-      if (selectedFile) {
-        const fd = new FormData();
-        fd.append('file', selectedFile);
-        fd.append('to', activePhone);
-        if (text) fd.append('caption', text);
-        const r = await fetch(`${BOT_URL}/send-media`, { method: 'POST', body: fd });
-        if (!r.ok) throw new Error('File send failed');
-        selectedFile = null;
-        document.getElementById('fileIn').value = '';
-      } else {
-        const r = await fetch(`https://graph.facebook.com/v18.0/${PHONE_ID}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${META_TOKEN}` },
-          body: JSON.stringify({ messaging_product: 'whatsapp', to: activePhone, type: 'text', text: { body: text } })
-        });
-        if (!r.ok) throw new Error('Send failed');
-        await sbPost('conversations', { phone_number: activePhone, role: 'assistant', content: `[HUMAN] ${text}` });
-      }
-
-      input.value = '';
-      showStatus('✅ Sent!', 'ok');
-      await loadConversations();
-      openChat(activePhone);
-    } catch(e) {
-      showStatus(`❌ ${e.message}`, 'err');
-    }
-
-    btn.disabled = false;
-    btn.textContent = 'Send';
-  }
-
-  function handleFile(e) {
-    selectedFile = e.target.files[0] || null;
-    if (selectedFile) showStatus(`📎 ${selectedFile.name}`, 'ok');
-  }
-
-  function showStatus(msg, type) {
-    const el = document.getElementById('sendStatus');
-    el.textContent = msg;
-    el.className = `send-status ${type}`;
-    el.style.display = 'block';
-    setTimeout(() => el.style.display = 'none', 3000);
-  }
-
-  // ── CUSTOMER META ──
-  async function saveName() {
-    if (!activePhone) return;
-    const name = document.getElementById('infoName').value.trim();
-    await upsertMeta(activePhone, { name });
-    document.getElementById('chatName').textContent = name || `+${activePhone}`;
-    await loadConversations();
-    renderContactList();
-  }
-
-  async function saveNotes() {
-    if (!activePhone) return;
-    const notes = document.getElementById('notesInput').value.trim();
-    await upsertMeta(activePhone, { notes });
-  }
-
-  async function setLabel(label) {
-    if (!activePhone) return;
-    await upsertMeta(activePhone, { label });
-    updateLabelUI(label);
-    await loadConversations();
-    renderContactList();
-  }
-
-  function updateLabelUI(label) {
-    document.querySelectorAll('.label-chip').forEach(chip => {
-      chip.classList.toggle('selected', chip.dataset.label === label);
-    });
-  }
-
-  async function upsertMeta(phone, data) {
-    if (!customerMeta[phone]) customerMeta[phone] = { phone_number: phone };
-    Object.assign(customerMeta[phone], data);
-    try {
-      // Try to check if customer_profiles table exists
-      await sbPost('customer_profiles', { phone_number: phone, ...data });
-    } catch(e) {
-      console.log('Note: customer_profiles table may not exist yet');
-    }
-  }
-
-  // ── CONTACTS TABLE ──
-  function renderContactsTable() {
-    const body = document.getElementById('contactsTableBody');
-    body.innerHTML = '';
-    if (!allCustomers.length) {
-      body.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No contacts yet</div></div>';
-      return;
-    }
-    allCustomers.forEach(c => {
-      const meta = customerMeta[c.phone] || {};
-      const label = meta.label || 'new';
-      const row = document.createElement('div');
-      row.className = 'table-row';
-      row.onclick = () => { showPage('inbox'); setTimeout(() => openChat(c.phone), 100); };
-      row.innerHTML = `
-        <span class="table-phone">+${c.phone}</span>
-        <span>${meta.name || '—'}</span>
-        <span><span class="tag tag-${label}">${label}</span></span>
-        <span>${c.msgs.length}</span>
-        <span>${fmtTime(c.msgs[0]?.created_at)}</span>
-      `;
-      body.appendChild(row);
-    });
-  }
-
-  // ── EXPORT CSV ──
-  function exportCSV() {
-    const rows = [['Phone', 'Name', 'Label', 'Messages', 'First Contact', 'Notes']];
-    allCustomers.forEach(c => {
-      const m = customerMeta[c.phone] || {};
-      rows.push([`+${c.phone}`, m.name||'', m.label||'new', c.msgs.length, fmtTime(c.msgs[0]?.created_at), m.notes||'']);
-    });
-    const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'sassa-contacts.csv';
-    a.click();
-  }
-
-  // ── BROADCAST ──
-  async function loadBroadcastInfo() {
-    await loadConversations();
-    document.getElementById('broadcastInfo').textContent = `📊 You have ${allCustomers.length} customers — message will be sent to all of them`;
-  }
-
-  async function sendBroadcast() {
-    const msg = document.getElementById('broadcastMsg').value.trim();
-    if (!msg) return alert('Please type a message first');
-    if (!META_TOKEN || !PHONE_ID) { openSettings(); return; }
-
-    const confirm = window.confirm(`Send this message to all ${allCustomers.length} customers?`);
-    if (!confirm) return;
-
-    const btn = document.getElementById('broadcastBtn');
-    const status = document.getElementById('broadcastStatus');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Sending...';
-    status.style.display = 'inline';
-
-    let sent = 0;
-    let failed = 0;
-
-    for (const c of allCustomers) {
-      try {
-        const r = await fetch(`https://graph.facebook.com/v18.0/${PHONE_ID}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${META_TOKEN}` },
-          body: JSON.stringify({ messaging_product: 'whatsapp', to: c.phone, type: 'text', text: { body: msg } })
-        });
-        if (r.ok) sent++;
-        else failed++;
-      } catch { failed++; }
-      status.textContent = `Sending... ${sent + failed}/${allCustomers.length}`;
-      await new Promise(r => setTimeout(r, 500)); // Rate limit
-    }
-
-    btn.disabled = false;
-    btn.textContent = '📢 Send to All Customers';
-    status.textContent = `✅ Done! Sent: ${sent}, Failed: ${failed}`;
-    setTimeout(() => status.style.display = 'none', 5000);
-  }
-
-  // ── HELPERS ──
-  function fmtTime(iso) {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    const now = new Date();
-    if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-  }
-
-  function strColor(str) {
-    const colors = ['#6c63ff','#ff6b6b','#4ecdc4','#ff9f43','#a29bfe','#fd79a8','#00b894','#e17055'];
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-  }
+// HELPERS
+function ft(iso){
+  if(!iso)return '—';
+  const d=new Date(iso),now=new Date();
+  if(d.toDateString()===now.toDateString())return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+}
+function sc(str){
+  const colors=['#6c63ff','#ff6b6b','#4ecdc4','#ff9f43','#a29bfe','#fd79a8','#00b894','#e17055'];
+  let h=0;for(let i=0;i<str.length;i++)h=str.charCodeAt(i)+((h<<5)-h);
+  return colors[Math.abs(h)%colors.length];
+}
 </script>
 </body>
 </html>
